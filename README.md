@@ -1,4 +1,4 @@
-# -jogo-nba-era
+# jogo-nba-eras
 
 Simulador de séries melhor de 7 entre times de temporadas diferentes da NBA (1990-91 em diante), jogadas no ambiente de uma era escolhida.
 
