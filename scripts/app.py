@@ -121,7 +121,7 @@ def comparar_estilos(chave_a, chave_b, era):
 def concluir_final():
     estado = st.session_state
     estado.mostrados = estado.pendente + 1
-    estado.pendente, estado.assistindo = None, False
+    estado.pendente, estado.assistindo, estado.lance_atual = None, False, 0
 
 
 def placar_do_final(j, sigla_a, sigla_b):
@@ -139,16 +139,22 @@ def escolher_final(j, sigla_a, sigla_b):
         st.rerun()
     if c2.button("Acompanhar segundo a segundo", type="primary", use_container_width=True):
         st.session_state.assistindo = True
-        st.session_state.velocidade = velocidade
+        st.session_state.velocidade_final = velocidade
+        st.session_state.lance_atual = 0
         st.rerun()
 
 
 def assistir_final(j, sigla_a, sigla_b):
-    st.button("Pular para o fim", on_click=concluir_final, use_container_width=True)
+    # Mudar a velocidade recarrega a página; o lance atual fica guardado e a narração continua dele.
+    c1, c2 = st.columns([2, 1], vertical_alignment="bottom")
+    c1.radio("Velocidade", list(VELOCIDADES), horizontal=True, key="velocidade_final")
+    c2.button("Pular para o fim", on_click=concluir_final, use_container_width=True)
     painel = st.empty()
     lances = j["lances"][j["inicio_final"]:]
-    pausa = VELOCIDADES[st.session_state.get("velocidade", "1x")]
-    for k, lance in enumerate(lances):
+    pausa = VELOCIDADES[st.session_state.velocidade_final]
+    for k in range(st.session_state.get("lance_atual", 0), len(lances)):
+        lance = lances[k]
+        st.session_state.lance_atual = k
         with painel.container(border=True):
             st.markdown(f"### {sigla_a} {lance['pts_a']} x {lance['pts_b']} {sigla_b}")
             st.caption(f"Jogo {j['jogo']} · {lance['periodo']} · {lance['relogio']}")
