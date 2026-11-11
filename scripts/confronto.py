@@ -7,9 +7,10 @@ Exemplo: confronto.py 2009-10 LAL 2016-17 GSW "anos 90"
 import sys
 
 import numpy as np
+import pandas as pd
 
 from banco import conectar
-from elenco import montar_elenco, taxas_do_time
+from elenco import CONSULTA_JOGADORES, montar_elenco, taxas_do_time
 from eras import ERAS, ambiente, carregar, traduzir
 from jogo_detalhado import jogar_detalhado
 from simulador import FORMATOS, simular_series
@@ -35,9 +36,25 @@ def carregar_elenco(dados, chave):
     """Rotação e taxas de eventos (assistências, roubos, tocos, faltas) de um time-temporada."""
     conexao = conectar()
     try:
-        return montar_elenco(conexao, chave[0], chave[1]), taxas_do_time(conexao, chave[0], chave[1], dados["times"])
+        jogos_temporada = pd.read_sql(CONSULTA_JOGADORES, conexao, params=(chave[0],))
+        elencos = {contexto: montar_elenco(conexao, chave[0], chave[1], jogos_temporada, contexto)
+                   for contexto in ("playoffs", "decisivo")}
+        return elencos, taxas_do_time(conexao, chave[0], chave[1], dados["times"])
     finally:
         conexao.close()
+
+
+def protagonista(box_a, box_b, siglas):
+    """Quem mais chamou o jogo (arremessos + lances livres) num jogo decisivo."""
+    candidatos = []
+    for sigla, box in zip(siglas, (box_a, box_b)):
+        arremessos = box.ARR.str.split("-").str[1].astype(int)
+        lances = box.LL.str.split("-").str[1].astype(int)
+        volume = arremessos + 0.44 * lances
+        i = volume.idxmax()
+        candidatos.append((volume[i], sigla, box.loc[i], arremessos[i]))
+    _, sigla, linha, arremessos = max(candidatos, key=lambda c: c[0])
+    return f"{linha.Jogador} ({sigla}) chamou a responsabilidade: {linha.MIN} minutos, {arremessos} arremessos e {linha.PTS} pontos"
 
 
 def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoes):
@@ -75,11 +92,15 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
     jogos, vitorias_a, vitorias_b = [], 0, 0
     for numero, primeiro_em_casa in enumerate(FORMATOS["2-2-1-1-1"], start=1):
         a_em_casa = bool(primeiro_em_casa) != (mando == "b")
+        # Jogo decisivo: um dos times pode ser eliminado; a rotação encurta ainda mais.
+        decisivo = 3 in (vitorias_a, vitorias_b)
+        contexto = "decisivo" if decisivo else "playoffs"
+        ea, eb = elenco_a[contexto], elenco_b[contexto]
         if a_em_casa:
-            j = jogar_detalhado(a, b, liga, elenco_a, elenco_b, taxas_a, taxas_b, rng, neutro, peso, siglas)
+            j = jogar_detalhado(a, b, liga, ea, eb, taxas_a, taxas_b, rng, neutro, peso, siglas)
             pts_a, pts_b, box_a, box_b = j["pts_casa"], j["pts_fora"], j["box_casa"], j["box_fora"]
         else:
-            j = jogar_detalhado(b, a, liga, elenco_b, elenco_a, taxas_b, taxas_a, rng, neutro, peso, siglas[::-1])
+            j = jogar_detalhado(b, a, liga, eb, ea, taxas_b, taxas_a, rng, neutro, peso, siglas[::-1])
             pts_a, pts_b, box_a, box_b = j["pts_fora"], j["pts_casa"], j["box_fora"], j["box_casa"]
         vitorias_a += pts_a > pts_b
         vitorias_b += pts_b > pts_a
@@ -89,7 +110,8 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
             titulo = manchete(numero, siglas[1], siglas[0], box_b, box_a, j["prorrogacoes"])
         jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
                       "vitorias_a": vitorias_a, "vitorias_b": vitorias_b, "box_a": box_a, "box_b": box_b,
-                      "lances": j["lances"], "prorrogacoes": j["prorrogacoes"], "manchete": titulo})
+                      "lances": j["lances"], "prorrogacoes": j["prorrogacoes"], "manchete": titulo,
+                      "decisivo": decisivo, "protagonista": protagonista(box_a, box_b, siglas) if decisivo else None})
         if 4 in (vitorias_a, vitorias_b):
             return jogos
     return jogos

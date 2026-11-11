@@ -140,9 +140,11 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     for j in jogos[:estado.mostrados]:
         local = "quadra neutra" if j["a_em_casa"] is None else f"em casa: {sigla_a if j['a_em_casa'] else sigla_b}"
         prorrogacao = " · prorrogação" if j["prorrogacoes"] else ""
+        decisivo = " · :red[**JOGO DECISIVO**]" if j["decisivo"] else ""
+        protagonista = f"  \n*{j['protagonista']}*" if j["protagonista"] else ""
         st.markdown(
-            f"**Jogo {j['jogo']}** · {sigla_a} **{j['pts_a']}** x **{j['pts_b']}** {sigla_b} · {local}{prorrogacao} · "
-            f"série {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}  \n{j['manchete']}"
+            f"**Jogo {j['jogo']}**{decisivo} · {sigla_a} **{j['pts_a']}** x **{j['pts_b']}** {sigla_b} · {local}{prorrogacao} · "
+            f"série {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}  \n{j['manchete']}{protagonista}"
         )
         with st.expander(f"Box score do jogo {j['jogo']}"):
             for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):

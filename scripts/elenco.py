@@ -9,6 +9,13 @@ import pandas as pd
 
 TAMANHO_ROTACAO = 10
 MINIMO_JOGOS = 10
+# Minutos nos playoffs e nos jogos decisivos (um time pode ser eliminado) em relação à temporada regular,
+# por posição na rotação. Medidos em todos os jogos de playoff desde 1990-91.
+FATOR_MINUTOS = {
+    "regular": [1.0] * 10,
+    "playoffs": [1.07, 1.06, 1.06, 1.02, 0.99, 0.93, 0.87, 0.84, 0.79, 0.72],
+    "decisivo": [1.10, 1.09, 1.08, 1.05, 1.00, 0.93, 0.90, 0.82, 0.81, 0.72],
+}
 # Encolhimento do aproveitamento individual para a média do time (em tentativas).
 ENCOLHER_2, ENCOLHER_3, ENCOLHER_LL = 100, 60, 40
 TAXAS = ["fg2a", "fg3a", "fta", "tov", "oreb", "dreb", "ast", "stl", "blk", "pf"]
@@ -43,25 +50,29 @@ def rotacao(jogos_temporada, team_id):
     return somas.nlargest(TAMANHO_ROTACAO, "mpg").reset_index(drop=True)
 
 
-def distribuir_minutos(mpg, total=240.0):
-    """Como num playoff: os principais mantêm seus minutos e a rotação encurta até fechar 240."""
-    if mpg.sum() <= total:
-        return mpg * total / mpg.sum()
-    minutos = np.zeros_like(mpg, dtype=float)
+def distribuir_minutos(mpg, contexto="playoffs", total=240.0):
+    """Aplica o fator do contexto a cada posição; os principais mantêm seus minutos e a rotação encurta até fechar 240."""
+    ordem = np.argsort(-mpg)
+    alvo = np.zeros_like(mpg, dtype=float)
+    alvo[ordem] = mpg[ordem] * np.array(FATOR_MINUTOS[contexto][:len(mpg)])
+    alvo = np.minimum(alvo, 48.0)
+    if alvo.sum() <= total:
+        return alvo * total / alvo.sum()
+    minutos = np.zeros_like(alvo)
     restante = total
-    for i in np.argsort(-mpg):
-        minutos[i] = min(mpg[i], restante)
+    for i in ordem:
+        minutos[i] = min(alvo[i], restante)
         restante -= minutos[i]
     return minutos
 
 
-def montar_elenco(conexao, temporada, team_id, jogos_temporada=None):
+def montar_elenco(conexao, temporada, team_id, jogos_temporada=None, contexto="playoffs"):
     if jogos_temporada is None:
         jogos_temporada = pd.read_sql(CONSULTA_JOGADORES, conexao, params=(temporada,))
     r = rotacao(jogos_temporada, team_id)
     r["fg2a"] = r.fga - r.fg3a
     r["fg2m"] = r.fgm - r.fg3m
-    r["minutos"] = distribuir_minutos(r.mpg.to_numpy())
+    r["minutos"] = distribuir_minutos(r.mpg.to_numpy(), contexto)
     r = r[r.minutos >= 1].reset_index(drop=True)
     pesos = {taxa: (r[taxa] / r.minutes * r.minutos).to_numpy() for taxa in TAXAS}
 

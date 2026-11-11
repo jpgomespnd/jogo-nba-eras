@@ -30,7 +30,7 @@ streamlit run scripts/app.py
 - `validar_playoffs.py`: prevê cada série de playoff real usando só a temporada regular, com pesos aprendidos sem a temporada prevista.
 - `eras.py`: ambiente médio de cada era (anos 90, 2000, 2010, 2020, ou uma temporada específica). O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
 - `confronto.py`: série entre dois times de quaisquer temporadas, jogada na era escolhida (ou em todas).
-- `elenco.py`: rotação "saudável" de cada time-temporada (quem terminou a temporada no time, com os minutos médios; como num playoff, os principais mantêm seus minutos e a rotação encurta) e a participação de cada jogador em arremessos, rebotes, assistências, roubos, tocos e faltas.
+- `elenco.py`: rotação "saudável" de cada time-temporada (quem terminou a temporada no time) e a participação de cada jogador em arremessos, rebotes, assistências, roubos, tocos e faltas. Os minutos seguem o que acontece de verdade nos playoffs desde 1990-91: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo (um time pode ser eliminado), e o 10º joga 28% a menos. Nos dados, as estrelas não arremessam mais por minuto em jogo decisivo (e acertam um pouco menos); elas "chamam a responsabilidade" jogando mais minutos.
 - `jogo_detalhado.py`: um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance. Gera box score, relógio, narração e eliminações por faltas (quem está pendurado vai mais para o banco).
 - `validar_jogadores.py`: compara a produção dos jogadores simulados com a real (correlação de 0,93 a 0,96 por 36 minutos).
 - `testes_eras.py`: testes de coerência entre eras.

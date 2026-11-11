@@ -28,7 +28,7 @@ def main():
         for temporada in TEMPORADAS:
             jogos_temporada = pd.read_sql(CONSULTA_JOGADORES, conexao, params=(temporada,))
             ids = list(times.loc[temporada].index)
-            elencos = {t: montar_elenco(conexao, temporada, t, jogos_temporada) for t in ids}
+            elencos = {t: montar_elenco(conexao, temporada, t, jogos_temporada, contexto="regular") for t in ids}
             taxas = {t: taxas_do_time(conexao, temporada, t, times) for t in ids}
             liga = dados["liga"].loc[temporada]
             acumulado = {t: [] for t in ids}
