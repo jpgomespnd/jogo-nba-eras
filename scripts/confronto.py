@@ -195,8 +195,10 @@ def simular_confronto(dados, time_a, time_b, era, mando="a", n=10000, seed=None)
         a, b = b, a
     r = simular_series(a, b, liga, n=n, neutro=mando == "neutro", peso_mando=dados["pesos"].peso_mando, seed=seed)
     if mando == "b":
+        # A simulação rodou com B no lugar de A: desfaz a troca nos resultados.
+        trocar = {"a": "b", "b": "a"}
         r["chance_a"] = 1 - r["chance_a"]
-        r["placares"] = {k.replace("a em", "x").replace("b em", "a em").replace("x", "b em"): v for k, v in r["placares"].items()}
+        r["placares"] = {f"{trocar[k[0]]}{k[1:]}": v for k, v in r["placares"].items()}
         r["media_pts_a"], r["media_pts_b"] = r["media_pts_b"], r["media_pts_a"]
     return r
 

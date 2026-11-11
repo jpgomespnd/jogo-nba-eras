@@ -72,6 +72,13 @@ def pontos_esperados(a, fator_acerto):
     return (1 - a.tov) * por_tentativa / (1 - erro * a.rebote_of)
 
 
+def vantagem_da_casa(casa, fora, liga, neutro=False, peso_mando=1.0):
+    """Mando + diferença de bônus, convertidos num multiplicador do aproveitamento dos arremessos."""
+    mando = 0.0 if neutro else peso_mando * liga["mando"]
+    bonus = casa.get("bonus", 0.0) - fora.get("bonus", 0.0)
+    return (mando + bonus) / (2 * CALIBRACAO_MANDO * liga["ortg"])
+
+
 def jogar(a_casa, a_fora, vantagem, posses, pts_casa, pts_fora, rng):
     # Quem abre vantagem além do esperado relaxa (ou põe os reservas) e o placar volta para perto do esperado.
     saldo_por_posse = pontos_esperados(a_casa, 1 + vantagem) - pontos_esperados(a_fora, 1 - vantagem)
@@ -89,9 +96,7 @@ def simular_jogos(casa, fora, liga, n, rng, neutro=False, peso_mando=1.0):
 
     "bonus" de cada time (pontos a cada 100 posses) soma força que os quatro fatores não captam.
     """
-    mando = 0.0 if neutro else peso_mando * liga["mando"]
-    bonus = casa.get("bonus", 0.0) - fora.get("bonus", 0.0)
-    vantagem = (mando + bonus) / (2 * CALIBRACAO_MANDO * liga["ortg"])
+    vantagem = vantagem_da_casa(casa, fora, liga, neutro, peso_mando)
     a_casa, a_fora = ataque(casa, fora, liga), ataque(fora, casa, liga)
     ritmo = liga["pace"] + casa["rel_pace"] + fora["rel_pace"]
 

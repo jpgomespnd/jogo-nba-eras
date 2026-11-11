@@ -11,7 +11,6 @@ contra 0,96 da de 2; em 2020 as duas valem ~1,08. Quem chutava muito de 3 explor
 que a liga ignorava.
 """
 
-import numpy as np
 import pandas as pd
 
 from banco import conectar

@@ -8,49 +8,44 @@ Cada time é descrito pelos quatro fatores de Dean Oliver (eFG%, desperdícios, 
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+.venv\Scripts\python -m pip install -r requirements.txt
 cd scripts
-python coletar_jogos.py
-python coletar_jogadores.py
-python conferir_jogadores.py
-python quatro_fatores.py
-python forca.py
-python validar_playoffs.py
-python testes_eras.py
-python confronto.py 2009-10 LAL 2016-17 GSW "anos 90"
+..\.venv\Scripts\python coletar_jogos.py
+..\.venv\Scripts\python coletar_jogadores.py
+..\.venv\Scripts\python quatro_fatores.py
+..\.venv\Scripts\python forca.py
 cd ..
-streamlit run scripts/app.py
+.venv\Scripts\streamlit run scripts\app.py
 ```
 
-- `app.py`: protótipo em Streamlit. Escolha dois times, a era e o mando; assista a uma série jogo a jogo, com mini-cartões dos jogos, líderes, box score e as atuações de destaque de cada partida (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos e quem decidiu no último minuto; cortes escolhidos pela frequência real nos playoffs). No fim da série, as estatísticas acumuladas de cada jogador. Em jogo apertado (até 5 pontos com 2 minutos para acabar), um pop-up oferece simular até o fim ou acompanhar o final lance a lance, na velocidade escolhida. No fim da série, veja a chance que cada um tinha, a distribuição de 4-0 a 4-3 e como cada time joga na era escolhida.
+A coleta leva cerca de 15 minutos. Conferências e validações (opcionais): `conferir_jogadores.py`, `validar_playoffs.py`, `validar_jogadores.py`, `testes_eras.py`. Pela linha de comando: `confronto.py 2009-10 LAL 2016-17 GSW "anos 90"`.
 
-- `simulador.py`: jogos posse a posse e séries (2-2-1-1-1, 2-3-2 ou 2-2-1) com mando de quadra. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
-- `forca.py`: força efetiva = saldo ajustado pelos adversários + saldo contra times bons + aproveitamento + séries vencidas nas duas temporadas anteriores, com pesos aprendidos nos jogos de playoff. O que os quatro fatores não captam entra como bônus no simulador, junto com o desgaste (jogos de playoff disputados antes da série).
-- `validar_playoffs.py`: prevê cada série de playoff real usando só a temporada regular, com pesos aprendidos sem a temporada prevista.
-- `eras.py`: ambiente médio de cada era (anos 90, 2000, 2010, 2020, ou uma temporada específica). O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
-- `confronto.py`: série entre dois times de quaisquer temporadas, jogada na era escolhida (ou em todas).
-- `elenco.py`: rotação "saudável" de cada time-temporada (quem terminou a temporada no time) e a participação de cada jogador em arremessos, rebotes, assistências, roubos, tocos e faltas. Os minutos seguem o que acontece de verdade nos playoffs desde 1990-91: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo (um time pode ser eliminado), e o 10º joga 28% a menos. Nos dados, as estrelas não arremessam mais por minuto em jogo decisivo (e acertam um pouco menos); elas "chamam a responsabilidade" jogando mais minutos.
-- `jogo_detalhado.py`: um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance. Gera box score, relógio, narração e eliminações por faltas (quem está pendurado vai mais para o banco).
-- `validar_jogadores.py`: compara a produção dos jogadores simulados com a real (correlação de 0,93 a 0,96 por 36 minutos).
-- `testes_eras.py`: testes de coerência entre eras.
+## Como funciona
+
+1. **Coleta** (`coletar_jogos.py`, `coletar_jogadores.py`): box score de cada time e de cada jogador em cada jogo, temporada regular e playoffs, via [`nba_api`](https://github.com/swar/nba_api).
+2. **Quatro fatores** (`quatro_fatores.py`): ritmo, eficiência e quatro fatores de cada time-temporada, com a média da liga e o desvio de cada time em relação a ela; vantagem de mando de cada temporada.
+3. **Força efetiva** (`forca.py`): saldo ajustado pelos adversários, saldo contra times bons, aproveitamento e séries vencidas nas duas temporadas anteriores, com pesos aprendidos numa regressão dos jogos de playoff. O que os quatro fatores não captam entra no simulador como bônus, junto com o desgaste (jogos de playoff antes da série).
+4. **Simulador** (`simulador.py`): jogos posse a posse e séries (2-2-1-1-1, 2-3-2 ou 2-2-1) com mando de quadra. Cada probabilidade da posse é a média da era + o desvio do ataque + o desvio da defesa adversária. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
+5. **Eras** (`eras.py`, `confronto.py`): ambiente médio de cada década (ou de uma temporada). O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
+6. **Jogadores** (`elenco.py`, `jogo_detalhado.py`): rotação "saudável" de cada time (quem terminou a temporada nele) e um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance: box score, relógio, narração e eliminações por faltas. Os minutos seguem os playoffs reais: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo; o 10º, 28% a menos.
+7. **App** (`app.py`, Streamlit): escolha os times, a era e o mando e assista à série jogo a jogo, com mini-cartões, líderes, box score e atuações de destaque (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos, quem decidiu no último minuto). Em jogo apertado, um pop-up oferece acompanhar o final lance a lance. As chances só aparecem quando a série termina.
 
 ## Validação
 
-540 séries de playoff (1990-91 a 2025-26): 75,7% de acerto, Brier 0,167. O time com mando vence 73,9% das séries.
+- **Playoffs reais** (`validar_playoffs.py`): 540 séries de 1990-91 a 2025-26, previstas só com a temporada regular e pesos aprendidos sem a temporada prevista. 75,7% de acerto e Brier 0,167; o time com mando vence 73,9%.
+- **Jogadores** (`validar_jogadores.py`): pontos, rebotes e assistências por 36 minutos simulados x reais com correlação de 0,93 a 0,96.
+- **Eras** (`testes_eras.py`): não existe gabarito entre épocas; os testes checam que um time contra ele mesmo dá 50%, que a ordem dos times não importa, que o ranking quase não muda entre eras e que o garrafão vale mais nos anos 90 do que em 2020.
 
-Entre eras não existe gabarito; os testes de coerência checam que um time contra ele mesmo dá 50%, que a ordem dos times não importa, que o ranking dos times quase não muda de era para era e que o aproveitamento de 2 (garrafão) vale mais nos anos 90 do que em 2020. O app não capta experiência individual em playoffs, ajustes de técnico nem lesões.
+Não capta lesões, experiência individual em playoffs nem ajustes de técnico.
 
 ## Dados
 
-`data/nba_eras.db` (SQLite, fora do Git), via [`nba_api`](https://github.com/swar/nba_api):
+`data/nba_eras.db` (SQLite, fora do Git; esquema em `sql/schema.sql`):
 
-- `games` e `team_games`: box score de time de cada jogo, temporada regular e playoffs.
-- `player_games`: box score de cada jogador em cada jogo (~930 mil linhas). Entre 1990-91 e 1995-96 faltam alguns jogadores em cerca de 4% dos jogos (menos de 1% dos pontos) e não existe +/-; de 1996-97 em diante os dados batem com os placares.
+- `games`, `team_games`: box score de time de cada jogo.
+- `player_games`: box score de cada jogador (~930 mil linhas). Entre 1990-91 e 1995-96 faltam alguns jogadores em ~4% dos jogos (menos de 1% dos pontos) e não existe +/-.
 - `vw_confrontos`: cada time num jogo com as estatísticas do adversário ao lado.
-- `fatores_time`: quatro fatores, ritmo e eficiência por time e temporada, com a média da liga (`liga_*`) e o desvio em relação a ela (`rel_*`).
-- `liga`: médias de cada temporada e a vantagem de mando (pontos a cada 100 posses).
-- `forca_time`: variáveis de força, força efetiva e bônus de cada time.
-- `pesos_forca`: pesos da força efetiva, do mando nos playoffs e do desgaste.
+- `fatores_time`, `liga`: quatro fatores por time-temporada (`liga_*` = média da liga, `rel_*` = desvio) e médias de cada temporada, com a vantagem de mando.
+- `forca_time`, `pesos_forca`: força efetiva e bônus de cada time; pesos da força, do mando nos playoffs e do desgaste.
 
 Projeto não oficial, sem vínculo com a NBA.

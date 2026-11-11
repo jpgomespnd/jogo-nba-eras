@@ -211,6 +211,8 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
             assistir_final(j, sigla_a, sigla_b)
         else:
             st.info(f"Jogo {j['jogo']} em andamento: {placar_do_final(j, sigla_a, sigla_b)} com 2:00 para acabar.")
+            # Se o pop-up for fechado no X, este botão o abre de novo.
+            st.button("Escolher como ver o final", use_container_width=True)
             escolher_final(j, sigla_a, sigla_b)
         return None
     if estado.mostrados < len(jogos):

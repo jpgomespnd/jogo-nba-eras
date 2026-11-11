@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from elenco import escolher
-from simulador import AMORTECIMENTO, CALIBRACAO_MANDO, DESVIO_RITMO, ataque, pontos_esperados
+from simulador import AMORTECIMENTO, DESVIO_RITMO, ataque, pontos_esperados, vantagem_da_casa
 
 LIMITE_FALTAS = 6
 FICA_NO_BANCO = 0.5
@@ -151,9 +151,7 @@ def montar_box(lado, duracao_minutos):
 
 def jogar_detalhado(casa, fora, liga, elenco_casa, elenco_fora, taxas_casa, taxas_fora, rng,
                     neutro=False, peso_mando=1.0, siglas=("CASA", "FORA")):
-    mando = 0.0 if neutro else peso_mando * liga["mando"]
-    bonus = casa.get("bonus", 0.0) - fora.get("bonus", 0.0)
-    vantagem = (mando + bonus) / (2 * CALIBRACAO_MANDO * liga["ortg"])
+    vantagem = vantagem_da_casa(casa, fora, liga, neutro, peso_mando)
     lado_casa = Lado(siglas[0], casa, fora, liga, elenco_casa, taxas_casa)
     lado_fora = Lado(siglas[1], fora, casa, liga, elenco_fora, taxas_fora)
     saldo_por_posse = (pontos_esperados(lado_casa.ataque, 1 + vantagem)
@@ -177,9 +175,10 @@ def jogar_detalhado(casa, fora, liga, elenco_casa, elenco_fora, taxas_casa, taxa
                 placar[quem] += pontos
                 segundo = min(segundo, inicio + segundos - 1)
                 periodo, tempo = relogio(segundo)
-                for texto in textos:
+                for n, texto in enumerate(textos, start=1):
+                    # Os pontos da posse ficam no último texto (o lance que a encerrou).
                     lances.append({"segundo": segundo, "periodo": periodo, "relogio": tempo, "time": atk.sigla, "texto": texto,
-                                   "pontos": pontos if texto is textos[-1] else 0,
+                                   "pontos": pontos if n == len(textos) else 0,
                                    "placar_casa": placar["casa"], "placar_fora": placar["fora"]})
 
     posses = max(int(round(rng.normal(ritmo, DESVIO_RITMO))), 60)
