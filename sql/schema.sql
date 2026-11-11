@@ -32,7 +32,34 @@ CREATE TABLE IF NOT EXISTS team_games (
     PRIMARY KEY (game_id, team_id)
 );
 
+CREATE TABLE IF NOT EXISTS player_games (
+    game_id     TEXT    NOT NULL REFERENCES games (game_id),
+    player_id   INTEGER NOT NULL,
+    player_name TEXT    NOT NULL,
+    team_id     INTEGER NOT NULL,
+    minutes     INTEGER NOT NULL,
+    pts         INTEGER NOT NULL,
+    fgm         INTEGER NOT NULL,
+    fga         INTEGER NOT NULL,
+    fg3m        INTEGER NOT NULL,
+    fg3a        INTEGER NOT NULL,
+    ftm         INTEGER NOT NULL,
+    fta         INTEGER NOT NULL,
+    oreb        INTEGER NOT NULL,
+    dreb        INTEGER NOT NULL,
+    reb         INTEGER NOT NULL,
+    ast         INTEGER NOT NULL,
+    stl         INTEGER NOT NULL,
+    blk         INTEGER NOT NULL,
+    tov         INTEGER NOT NULL,
+    pf          INTEGER NOT NULL,
+    plus_minus  INTEGER,  -- só existe a partir de 1996-97
+    PRIMARY KEY (game_id, player_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_games_season ON games (season, season_type);
+CREATE INDEX IF NOT EXISTS idx_player_games_player ON player_games (player_id);
+CREATE INDEX IF NOT EXISTS idx_player_games_team ON player_games (team_id, game_id);
 
 -- Cada linha: um time num jogo, com as estatísticas do adversário ao lado.
 DROP VIEW IF EXISTS vw_confrontos;
