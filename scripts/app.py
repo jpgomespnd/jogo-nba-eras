@@ -248,12 +248,18 @@ def cartao_jogo(j, sigla_a, sigla_b):
         for _, texto in j["destaques"]:
             st.markdown(f":orange[★] {texto}")
         st.caption(f"Série: {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}")
-        with st.expander("Box score completo"):
-            for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):
-                tabela = box.copy()
-                tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
-                st.markdown(f"**{sigla}**")
-                st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
+        if st.button("Box score completo", key=f"box_{j['jogo']}"):
+            box_score(j, sigla_a, sigla_b)
+
+
+@st.dialog("Box score", width="large")
+def box_score(j, sigla_a, sigla_b):
+    st.markdown(f"**Jogo {j['jogo']}** · {sigla_a} {j['pts_a']} x {j['pts_b']} {sigla_b}")
+    for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):
+        tabela = box.copy()
+        tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
+        st.markdown(f"**{sigla}**")
+        st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
 
 
 def estatisticas_da_serie(jogos, sigla_a, sigla_b):

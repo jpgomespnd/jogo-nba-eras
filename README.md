@@ -31,6 +31,16 @@ API (com o banco já montado), a partir da raiz do projeto:
 
 Documentação interativa em http://localhost:8000/docs.
 
+Front em React (Node.js 20 ou mais novo), com a API ligada, em outro terminal:
+
+```powershell
+cd front
+npm install
+npm run dev
+```
+
+Abre em http://localhost:5173. Para apontar para outra API, defina `VITE_API_URL`.
+
 ## Como funciona
 
 1. **Coleta** (`coletar_jogos.py`, `coletar_jogadores.py`): box score de cada time e de cada jogador em cada jogo, temporada regular e playoffs, via [`nba_api`](https://github.com/swar/nba_api).
@@ -41,6 +51,7 @@ Documentação interativa em http://localhost:8000/docs.
 6. **Jogadores** (`elenco.py`, `jogo_detalhado.py`): rotação "saudável" de cada time (quem terminou a temporada nele) e um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance: box score, relógio, narração e eliminações por faltas. Os minutos seguem os playoffs reais: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo; o 10º, 28% a menos.
 7. **App** (`app.py`, Streamlit): escolha os times, a era e o mando e assista à série jogo a jogo, com mini-cartões, líderes, box score e atuações de destaque (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos, quem decidiu no último minuto). Em jogo apertado, um pop-up oferece acompanhar o final lance a lance. As chances só aparecem quando a série termina.
 8. **API** (`api.py`, FastAPI): o mesmo simulador servido para o front em React.
+9. **Front** (`front/`, React + Vite): escolha dos times, da era e do mando; a série jogo a jogo, com final narrado lance a lance; e a revelação das chances no fim. A interface veste a era escolhida (TV dos anos 90, metal dos 2000, chapado dos 2010, escuro dos 2020).
 
 | Endereço | O que devolve |
 |---|---|

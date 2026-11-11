@@ -1,0 +1,154 @@
+/* Cada era veste a interface: cores, fontes e cantos mudam com data-era no <html>. */
+
+:root,
+[data-era="90"] {
+  --fundo: #0a0f2c;
+  --fundo-imagem: none;
+  --painel: #12193f;
+  --painel-2: #0f1538;
+  --borda: #2b3466;
+  --texto: #f4f1e6;
+  --texto-suave: #c9c4b0;
+  --destaque: #ffd23f;
+  --sobre-destaque: #0a0f2c;
+  --cor-a: #3b8be8;
+  --cor-b: #eb6834;
+  --sobre-a: #fff;
+  --sobre-b: #0a0f2c;
+  --raio: 0;
+  --fonte-titulo: "Anton", sans-serif;
+  --fonte-texto: "Barlow Condensed", sans-serif;
+  --fonte-numero: "VT323", monospace;
+  --titulo-caixa: uppercase;
+  --titulo-peso: 400;
+  --titulo-estilo: normal;
+  --titulo-espaco: 0.04em;
+  --texto-tamanho: 19px;
+  --numero-escala: 1.25;
+  --brilho-numero: 0 0 10px rgb(255 210 63 / 0.45);
+  --relevo: none;
+}
+
+[data-era="2000"] {
+  --fundo: #15181d;
+  --fundo-imagem: radial-gradient(ellipse at top, #2c323c 0%, #15181d 60%);
+  --painel: linear-gradient(180deg, #353b45 0%, #23272e 100%);
+  --painel-2: #1c2026;
+  --borda: #4a525e;
+  --texto: #eef2f7;
+  --texto-suave: #aab4c2;
+  --destaque: #7fd6ff;
+  --sobre-destaque: #0d1b26;
+  --cor-a: #3478e0;
+  --cor-b: #e8632b;
+  --sobre-a: #fff;
+  --sobre-b: #fff;
+  --raio: 6px;
+  --fonte-titulo: "Exo 2", sans-serif;
+  --fonte-texto: "Exo 2", sans-serif;
+  --fonte-numero: "Exo 2", sans-serif;
+  --titulo-caixa: uppercase;
+  --titulo-peso: 800;
+  --titulo-estilo: italic;
+  --titulo-espaco: 0.02em;
+  --texto-tamanho: 16px;
+  --numero-escala: 1;
+  --brilho-numero: 0 1px 0 rgb(255 255 255 / 0.25), 0 0 14px rgb(127 214 255 / 0.35);
+  --relevo: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 2px 6px rgb(0 0 0 / 0.35);
+}
+
+[data-era="2010"] {
+  --fundo: #eceff3;
+  --fundo-imagem: none;
+  --painel: #fff;
+  --painel-2: #f4f6f9;
+  --borda: #d3d9e1;
+  --texto: #15191f;
+  --texto-suave: #4e5866;
+  --destaque: #d6452f;
+  --sobre-destaque: #fff;
+  --cor-a: #1f62c4;
+  --cor-b: #e0751d;
+  --sobre-a: #fff;
+  --sobre-b: #1b1100;
+  --raio: 2px;
+  --fonte-titulo: "Barlow Condensed", sans-serif;
+  --fonte-texto: "Inter", sans-serif;
+  --fonte-numero: "Barlow Condensed", sans-serif;
+  --titulo-caixa: uppercase;
+  --titulo-peso: 700;
+  --titulo-estilo: normal;
+  --titulo-espaco: 0.01em;
+  --texto-tamanho: 15px;
+  --numero-escala: 1.1;
+  --brilho-numero: none;
+  --relevo: none;
+}
+
+[data-era="2020"] {
+  --fundo: #101216;
+  --fundo-imagem: none;
+  --painel: #181b21;
+  --painel-2: #1f232a;
+  --borda: #2a2f38;
+  --texto: #eceef2;
+  --texto-suave: #9aa3b2;
+  --destaque: #eceef2;
+  --sobre-destaque: #101216;
+  --cor-a: #4f8cff;
+  --cor-b: #ff8a4c;
+  --sobre-a: #0b1426;
+  --sobre-b: #261206;
+  --raio: 12px;
+  --fonte-titulo: "Space Grotesk", sans-serif;
+  --fonte-texto: "Inter", sans-serif;
+  --fonte-numero: "Space Grotesk", sans-serif;
+  --titulo-caixa: none;
+  --titulo-peso: 700;
+  --titulo-estilo: normal;
+  --titulo-espaco: -0.01em;
+  --texto-tamanho: 15px;
+  --numero-escala: 1;
+  --brilho-numero: none;
+  --relevo: none;
+}
+
+/* Anos 90: linhas de tubo de TV por cima de tudo e o selo AO VIVO. */
+[data-era="90"] body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.18) 0 1px, transparent 1px 3px);
+}
+
+.ao-vivo {
+  display: none;
+}
+
+[data-era="90"] .ao-vivo {
+  display: inline-block;
+  background: #d7263d;
+  color: #fff;
+  font-family: var(--fonte-texto);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+}
+
+[data-era="90"] .topo {
+  border-bottom: 4px solid var(--destaque);
+}
+
+/* Anos 2010: chapado, sem relevo, blocos de cor. */
+[data-era="2010"] .botao-principal {
+  border-radius: 0;
+}
+
+/* Anos 2020: a estatística é a estrela. */
+[data-era="2020"] .placar-numero {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
