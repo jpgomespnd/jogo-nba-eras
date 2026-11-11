@@ -22,6 +22,15 @@ No Windows, deixe o projeto num caminho curto (ex.: `C:\projetos\jogo-nba-eras`)
 
 A coleta leva cerca de 15 minutos. Conferências e validações (opcionais): `conferir_jogadores.py`, `validar_playoffs.py`, `validar_jogadores.py`, `testes_eras.py`. Pela linha de comando: `confronto.py 2009-10 LAL 2016-17 GSW "anos 90"`.
 
+API (com o banco já montado), a partir da raiz do projeto:
+
+```powershell
+.venv\Scripts\uvicorn --app-dir scripts api:app --reload
+.venv\Scripts\python -m pytest tests
+```
+
+Documentação interativa em http://localhost:8000/docs.
+
 ## Como funciona
 
 1. **Coleta** (`coletar_jogos.py`, `coletar_jogadores.py`): box score de cada time e de cada jogador em cada jogo, temporada regular e playoffs, via [`nba_api`](https://github.com/swar/nba_api).
@@ -31,6 +40,17 @@ A coleta leva cerca de 15 minutos. Conferências e validações (opcionais): `co
 5. **Eras** (`eras.py`, `confronto.py`): ambiente médio de cada década (ou de uma temporada). O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
 6. **Jogadores** (`elenco.py`, `jogo_detalhado.py`): rotação "saudável" de cada time (quem terminou a temporada nele) e um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance: box score, relógio, narração e eliminações por faltas. Os minutos seguem os playoffs reais: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo; o 10º, 28% a menos.
 7. **App** (`app.py`, Streamlit): escolha os times, a era e o mando e assista à série jogo a jogo, com mini-cartões, líderes, box score e atuações de destaque (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos, quem decidiu no último minuto). Em jogo apertado, um pop-up oferece acompanhar o final lance a lance. As chances só aparecem quando a série termina.
+8. **API** (`api.py`, FastAPI): o mesmo simulador servido para o front em React.
+
+| Endereço | O que devolve |
+|---|---|
+| `GET /temporadas` | As 36 temporadas |
+| `GET /times?temporada=2016-17` | Times da temporada: campanha, saldo, força, selos de estilo e cestinhas |
+| `GET /eras` | As eras com descrição, ritmo, volume de 3 e pontos por arremesso |
+| `POST /serie` | Uma série jogo a jogo: placares, box scores, lances, manchetes, líderes e destaques (sem as chances) |
+| `POST /revelar` | Chances de cada time, distribuição de 4-0 a 4-3 e o estilo de cada um na era |
+
+Os testes (`tests/test_api.py`) conferem, entre outras coisas, que o box score soma o placar, que a mesma semente repete a série e que pedidos inválidos são recusados.
 
 ## Validação
 

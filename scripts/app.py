@@ -10,19 +10,13 @@ import pandas as pd
 import streamlit as st
 
 from banco import conectar
-from confronto import carregar_elenco, narrar_serie, preparar, simular_confronto
-from eras import ERAS, carregar
+from confronto import carregar_elenco, estilo_na_era, narrar_serie, preparar, simular_confronto
+from eras import DESCRICOES, ERAS, carregar
 
 SIMULACOES = 10000
 # Segundos de pausa entre um lance e outro no final narrado.
 VELOCIDADES = {"1x": 1.6, "2x": 0.8, "4x": 0.4}
 COR_A, COR_B = "#2a78d6", "#eb6834"
-DESCRICAO_ERAS = {
-    "anos 90": "Jogo lento e físico, com hand-checking e poucas bolas de 3. O arremesso de 2 vale 0,96 ponto e o de 3 vale 1,03: quem chutava de longe explorava uma vantagem que a liga ignorava.",
-    "anos 2000": "Ritmo mais baixo da história e defesas fortes. O hand-checking acaba em 2004 e o volume de 3 começa a subir.",
-    "anos 2010": "Spacing e a revolução da bola de 3, com quase 30% dos arremessos de longe no fim da década.",
-    "anos 2020": "Ritmo alto e 40% dos arremessos de 3. Arremesso de 2 e de 3 valem o mesmo: cerca de 1,08 ponto.",
-}
 
 
 @st.cache_resource
@@ -99,20 +93,19 @@ def comparar_estilos(chave_a, chave_b, era):
     a, b, liga = preparar(d, d["times"].loc[chave_a], d["times"].loc[chave_b], era)
 
     def na_era(time):
-        valor = lambda m: liga[m] + time[f"rel_{m}"]
-        efg = (1 - valor("fg3a_rate")) * valor("fg2_pct") + valor("fg3a_rate") * valor("fg3_pct") * 1.5
-        opp_efg = (1 - valor("opp_fg3a_rate")) * valor("opp_fg2_pct") + valor("opp_fg3a_rate") * valor("opp_fg3_pct") * 1.5
+        e = estilo_na_era(time, liga)
+        pct = lambda x: f"{100 * x:.1f}%"
         return {
-            "Ritmo (posses por jogo)": f"{valor('pace'):.1f}",
-            "Ataque: aproveitamento efetivo (eFG%)": f"{100 * efg:.1f}%",
-            "Ataque: arremessos de 3": f"{100 * valor('fg3a_rate'):.1f}%",
-            "Ataque: desperdícios por posse": f"{100 * valor('tov_pct'):.1f}%",
-            "Ataque: rebote ofensivo": f"{100 * valor('orb_pct'):.1f}%",
-            "Ataque: lances livres por arremesso": f"{100 * valor('fta_rate'):.1f}%",
-            "Defesa: eFG% cedido": f"{100 * opp_efg:.1f}%",
-            "Defesa: desperdícios forçados": f"{100 * valor('opp_tov_pct'):.1f}%",
-            "Defesa: rebote defensivo": f"{100 * valor('drb_pct'):.1f}%",
-            "Força extra (saldo a cada 100 posses)": f"{time['bonus']:+.1f}",
+            "Ritmo (posses por jogo)": f"{e['ritmo']:.1f}",
+            "Ataque: aproveitamento efetivo (eFG%)": pct(e["efg"]),
+            "Ataque: arremessos de 3": pct(e["volume_de_3"]),
+            "Ataque: desperdícios por posse": pct(e["desperdicios"]),
+            "Ataque: rebote ofensivo": pct(e["rebote_ofensivo"]),
+            "Ataque: lances livres por arremesso": pct(e["lances_livres"]),
+            "Defesa: eFG% cedido": pct(e["efg_cedido"]),
+            "Defesa: desperdícios forçados": pct(e["desperdicios_forcados"]),
+            "Defesa: rebote defensivo": pct(e["rebote_defensivo"]),
+            "Força extra (saldo a cada 100 posses)": f"{e['forca_extra']:+.1f}",
         }
 
     return pd.DataFrame({nome(chave_a)[1]: na_era(a), nome(chave_b)[1]: na_era(b)})
@@ -323,7 +316,7 @@ def main():
         sigla_a, sigla_b = f"{sigla_a} {chave_a[0][2:4]}", f"{sigla_b} {chave_b[0][2:4]}"
 
     era = st.radio("Era em que a série é jogada", list(ERAS), index=1, horizontal=True)
-    st.caption(DESCRICAO_ERAS[era])
+    st.caption(DESCRICOES[era])
     opcoes_mando = {"a": f"{nome_a}", "b": f"{nome_b}", "neutro": "Quadra neutra"}
     mando = st.radio("Mando de quadra da série", list(opcoes_mando), format_func=opcoes_mando.get, horizontal=True)
 

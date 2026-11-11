@@ -38,6 +38,29 @@ def preparar(dados, time_a, time_b, era):
     return traduzir(time_a, dados, espalhamento), traduzir(time_b, dados, espalhamento), liga
 
 
+def estilo_na_era(time, liga):
+    """Como um time (já traduzido para a era) joga no ambiente dela: ritmo, quatro fatores e força extra."""
+    def valor(m):
+        return liga[m] + time[f"rel_{m}"]
+
+    def efg(prefixo=""):
+        tres = valor(f"{prefixo}fg3a_rate")
+        return (1 - tres) * valor(f"{prefixo}fg2_pct") + tres * valor(f"{prefixo}fg3_pct") * 1.5
+
+    return {
+        "ritmo": float(valor("pace")),
+        "efg": float(efg()),
+        "volume_de_3": float(valor("fg3a_rate")),
+        "desperdicios": float(valor("tov_pct")),
+        "rebote_ofensivo": float(valor("orb_pct")),
+        "lances_livres": float(valor("fta_rate")),
+        "efg_cedido": float(efg("opp_")),
+        "desperdicios_forcados": float(valor("opp_tov_pct")),
+        "rebote_defensivo": float(valor("drb_pct")),
+        "forca_extra": float(time["bonus"]),
+    }
+
+
 def carregar_elenco(dados, chave):
     """Rotação e taxas de eventos (assistências, roubos, tocos, faltas) de um time-temporada."""
     conexao = conectar()
