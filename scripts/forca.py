@@ -93,6 +93,8 @@ def main():
         tabela = variaveis.assign(forca=forca(variaveis, pesos))
         tabela["bonus"] = tabela.forca - tabela.net
         tabela.reset_index().to_sql("forca_time", conexao, if_exists="replace", index=False)
+        pd.DataFrame([{"peso_mando": pesos["peso_mando"], "peso_desgaste": pesos["peso_desgaste"],
+                       "desvio": pesos["desvio"], **pesos["pesos"]}]).to_sql("pesos_forca", conexao, if_exists="replace", index=False)
     finally:
         conexao.close()
 
