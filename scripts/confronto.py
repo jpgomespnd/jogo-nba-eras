@@ -6,9 +6,11 @@ Exemplo: confronto.py 2009-10 LAL 2016-17 GSW "anos 90"
 
 import sys
 
+import numpy as np
+
 from banco import conectar
 from eras import ERAS, ambiente, carregar, traduzir
-from simulador import simular_series
+from simulador import FORMATOS, simular_jogos, simular_series
 
 
 def buscar_time(dados, temporada, texto):
@@ -22,10 +24,36 @@ def buscar_time(dados, temporada, texto):
     return dados["times"].loc[(temporada, achados.index[0])]
 
 
+def preparar(dados, time_a, time_b, era):
+    liga, espalhamento = ambiente(dados, era)
+    return traduzir(time_a, dados, espalhamento), traduzir(time_b, dados, espalhamento), liga
+
+
+def narrar_serie(dados, time_a, time_b, era, mando="a", seed=None):
+    """Uma série possível, jogo a jogo: lista com o placar de cada jogo e quem jogou em casa."""
+    a, b, liga = preparar(dados, time_a, time_b, era)
+    rng = np.random.default_rng(seed)
+    neutro = mando == "neutro"
+    jogos, vitorias_a, vitorias_b = [], 0, 0
+    for numero, primeiro_em_casa in enumerate(FORMATOS["2-2-1-1-1"], start=1):
+        a_em_casa = bool(primeiro_em_casa) != (mando == "b")
+        if a_em_casa:
+            pts_a, pts_b = simular_jogos(a, b, liga, 1, rng, neutro, dados["pesos"].peso_mando)
+        else:
+            pts_b, pts_a = simular_jogos(b, a, liga, 1, rng, neutro, dados["pesos"].peso_mando)
+        pts_a, pts_b = int(pts_a[0]), int(pts_b[0])
+        vitorias_a += pts_a > pts_b
+        vitorias_b += pts_b > pts_a
+        jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
+                      "vitorias_a": vitorias_a, "vitorias_b": vitorias_b})
+        if 4 in (vitorias_a, vitorias_b):
+            return jogos
+    return jogos
+
+
 def simular_confronto(dados, time_a, time_b, era, mando="a", n=10000, seed=None):
     """mando: "a" (time a com mando da série), "b" ou "neutro"."""
-    liga, espalhamento = ambiente(dados, era)
-    a, b = traduzir(time_a, dados, espalhamento), traduzir(time_b, dados, espalhamento)
+    a, b, liga = preparar(dados, time_a, time_b, era)
     if mando == "b":
         a, b = b, a
     r = simular_series(a, b, liga, n=n, neutro=mando == "neutro", peso_mando=dados["pesos"].peso_mando, seed=seed)

@@ -17,7 +17,11 @@ python forca.py
 python validar_playoffs.py
 python testes_eras.py
 python confronto.py 2009-10 LAL 2016-17 GSW "anos 90"
+cd ..
+streamlit run scripts/app.py
 ```
+
+- `app.py`: protótipo em Streamlit. Escolha dois times, a era e o mando; veja a chance de cada um, a distribuição de 4-0 a 4-3, uma série possível jogo a jogo e como cada time joga na era escolhida.
 
 - `simulador.py`: jogos posse a posse e séries (2-2-1-1-1, 2-3-2 ou 2-2-1) com mando de quadra. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
 - `forca.py`: força efetiva = saldo ajustado pelos adversários + saldo contra times bons + aproveitamento + séries vencidas nas duas temporadas anteriores, com pesos aprendidos nos jogos de playoff. O que os quatro fatores não captam entra como bônus no simulador, junto com o desgaste (jogos de playoff disputados antes da série).
