@@ -18,6 +18,8 @@ cd ..
 .venv\Scripts\streamlit run scripts\app.py
 ```
 
+No Windows, deixe o projeto num caminho curto (ex.: `C:\projetos\jogo-nba-eras`): o Streamlit tem arquivos internos com nomes longos e a instalação falha se o caminho completo passar de 260 caracteres, a menos que o suporte a caminhos longos esteja ativado.
+
 A coleta leva cerca de 15 minutos. Conferências e validações (opcionais): `conferir_jogadores.py`, `validar_playoffs.py`, `validar_jogadores.py`, `testes_eras.py`. Pela linha de comando: `confronto.py 2009-10 LAL 2016-17 GSW "anos 90"`.
 
 ## Como funciona
