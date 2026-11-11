@@ -35,12 +35,16 @@ CREATE TABLE IF NOT EXISTS team_games (
 CREATE INDEX IF NOT EXISTS idx_games_season ON games (season, season_type);
 
 -- Cada linha: um time num jogo, com as estatísticas do adversário ao lado.
-CREATE VIEW IF NOT EXISTS vw_confrontos AS
+DROP VIEW IF EXISTS vw_confrontos;
+CREATE VIEW vw_confrontos AS
 SELECT
     g.season,
     g.season_type,
     g.game_id,
+    g.game_date,
+    g.is_neutral,
     t.team_id,
+    o.team_id AS opp_team_id,
     t.team_abbreviation,
     t.team_name,
     t.is_home,
