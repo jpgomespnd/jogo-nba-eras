@@ -192,21 +192,13 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     botoes[1].button("Ver a série inteira", disabled=acabou, on_click=ver_tudo, use_container_width=True)
     botoes[2].button("Nova série", on_click=nova_serie, use_container_width=True)
 
-    for j in jogos[:estado.mostrados]:
-        local = "quadra neutra" if j["a_em_casa"] is None else f"em casa: {sigla_a if j['a_em_casa'] else sigla_b}"
-        prorrogacao = " · prorrogação" if j["prorrogacoes"] else ""
-        decisivo = " · :red[**JOGO DECISIVO**]" if j["decisivo"] else ""
-        protagonista = f"  \n*{j['protagonista']}*" if j["protagonista"] else ""
-        st.markdown(
-            f"**Jogo {j['jogo']}**{decisivo} · {sigla_a} **{j['pts_a']}** x **{j['pts_b']}** {sigla_b} · {local}{prorrogacao} · "
-            f"série {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}  \n{j['manchete']}{protagonista}"
-        )
-        with st.expander(f"Box score do jogo {j['jogo']}"):
-            for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):
-                tabela = box.copy()
-                tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
-                st.markdown(f"**{sigla}**")
-                st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
+    jogados = jogos[:estado.mostrados]
+    if jogados:
+        mini_cartoes(jogados, sigla_a, sigla_b)
+        opcoes = [j["jogo"] for j in jogados]
+        escolhido = st.radio("Ver jogo", opcoes, index=len(opcoes) - 1, horizontal=True,
+                             format_func=lambda n: f"Jogo {n}", key=f"ver_{estado.semente}_{len(opcoes)}")
+        cartao_jogo(jogados[escolhido - 1], sigla_a, sigla_b)
     if em_andamento:
         j = jogos[estado.pendente]
         if estado.assistindo:
@@ -221,7 +213,69 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     a_venceu = ultimo["vitorias_a"] == 4
     st.success(f"{sigla_a if a_venceu else sigla_b} vence a série por {max(ultimo['vitorias_a'], ultimo['vitorias_b'])}-"
                f"{min(ultimo['vitorias_a'], ultimo['vitorias_b'])}.")
+    estatisticas_da_serie(jogos, sigla_a, sigla_b)
     return a_venceu
+
+
+def mini_cartoes(jogados, sigla_a, sigla_b):
+    colunas = st.columns(7)
+    for numero, coluna in enumerate(colunas, start=1):
+        with coluna.container(border=True):
+            if numero > len(jogados):
+                st.caption(f"Jogo {numero}")
+                continue
+            j = jogados[numero - 1]
+            vencedor = sigla_a if j["pts_a"] > j["pts_b"] else sigla_b
+            cestinha = max(j["lideres"], key=lambda l: l["PTS"][1])["PTS"]
+            st.caption(f"Jogo {numero} · {vencedor}")
+            st.markdown(f"**{j['pts_a']}-{j['pts_b']}**  \n{cestinha[0].split(' ')[-1]} {cestinha[1]}")
+            if j["destaques"]:
+                st.caption(f":orange[{j['destaques'][0][0]}]")
+
+
+def cartao_jogo(j, sigla_a, sigla_b):
+    local = "quadra neutra" if j["a_em_casa"] is None else f"em casa: {sigla_a if j['a_em_casa'] else sigla_b}"
+    with st.container(border=True):
+        selos = [f"Jogo {j['jogo']}", local] + (["prorrogação"] if j["prorrogacoes"] else [])
+        decisivo = " · :red[**JOGO DECISIVO**]" if j["decisivo"] else ""
+        st.caption(" · ".join(selos) + decisivo)
+        st.markdown(f"## {sigla_a} {j['pts_a']} x {j['pts_b']} {sigla_b}")
+        st.markdown(f"**{j['manchete']}**")
+        for sigla, lideres in zip((sigla_a, sigla_b), j["lideres"]):
+            partes = [f"{nome.split(' ')[-1]} {valor} {estat}" for estat, (nome, valor) in lideres.items()]
+            st.caption(f"**{sigla}** · " + " · ".join(partes))
+        for _, texto in j["destaques"]:
+            st.markdown(f":orange[★] {texto}")
+        st.caption(f"Série: {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}")
+        with st.expander("Box score completo"):
+            for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):
+                tabela = box.copy()
+                tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
+                st.markdown(f"**{sigla}**")
+                st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
+
+
+def estatisticas_da_serie(jogos, sigla_a, sigla_b):
+    st.subheader("Estatísticas da série")
+    st.caption("Médias por jogo de cada jogador na série. Em destaque, o líder do time em cada coluna.")
+    for sigla, chave in ((sigla_a, "box_a"), (sigla_b, "box_b")):
+        box = pd.concat([j[chave] for j in jogos])
+        for coluna in ("ARR", "3P", "LL"):
+            partes = box[coluna].str.split("-")
+            box[f"{coluna}_c"], box[f"{coluna}_t"] = partes.str[0].astype(int), partes.str[1].astype(int)
+        box = box[box.MIN > 0]
+        g = box.groupby("Jogador", sort=False)
+        tabela = g[["MIN", "PTS", "REB", "AST", "ROB", "TOC"]].mean().round(1)
+        tabela.insert(0, "J", g.size())
+        somas = g[[f"{c}_{s}" for c in ("ARR", "3P", "LL") for s in ("c", "t")]].sum()
+        for coluna in ("ARR", "3P", "LL"):
+            tentativas = somas[f"{coluna}_t"]
+            tabela[f"{coluna}%"] = (100 * somas[f"{coluna}_c"] / tentativas.where(tentativas > 0)).round(1)
+        tabela = tabela.sort_values("MIN", ascending=False)
+        estilo = tabela.style.format(precision=1).highlight_max(
+            subset=["PTS", "REB", "AST", "ROB", "TOC"], props="color: #eb6834; font-weight: 700")
+        st.markdown(f"**{sigla}**")
+        st.dataframe(estilo, use_container_width=True)
 
 
 def revelar(chave_a, chave_b, era, mando, sigla_a, sigla_b, a_venceu):

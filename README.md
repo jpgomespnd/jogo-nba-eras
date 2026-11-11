@@ -23,7 +23,7 @@ cd ..
 streamlit run scripts/app.py
 ```
 
-- `app.py`: protótipo em Streamlit. Escolha dois times, a era e o mando; assista a uma série jogo a jogo, com manchete e box score de cada jogo. Em jogo apertado (até 5 pontos com 2 minutos para acabar), um pop-up oferece simular até o fim ou acompanhar o final lance a lance, na velocidade escolhida. No fim da série, veja a chance que cada um tinha, a distribuição de 4-0 a 4-3 e como cada time joga na era escolhida.
+- `app.py`: protótipo em Streamlit. Escolha dois times, a era e o mando; assista a uma série jogo a jogo, com mini-cartões dos jogos, líderes, box score e as atuações de destaque de cada partida (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos e quem decidiu no último minuto; cortes escolhidos pela frequência real nos playoffs). No fim da série, as estatísticas acumuladas de cada jogador. Em jogo apertado (até 5 pontos com 2 minutos para acabar), um pop-up oferece simular até o fim ou acompanhar o final lance a lance, na velocidade escolhida. No fim da série, veja a chance que cada um tinha, a distribuição de 4-0 a 4-3 e como cada time joga na era escolhida.
 
 - `simulador.py`: jogos posse a posse e séries (2-2-1-1-1, 2-3-2 ou 2-2-1) com mando de quadra. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
 - `forca.py`: força efetiva = saldo ajustado pelos adversários + saldo contra times bons + aproveitamento + séries vencidas nas duas temporadas anteriores, com pesos aprendidos nos jogos de playoff. O que os quatro fatores não captam entra como bônus no simulador, junto com o desgaste (jogos de playoff disputados antes da série).

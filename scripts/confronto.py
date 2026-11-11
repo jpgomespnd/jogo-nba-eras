@@ -4,6 +4,7 @@ Uso: confronto.py TEMPORADA_A TIME_A TEMPORADA_B TIME_B [ERA]
 Exemplo: confronto.py 2009-10 LAL 2016-17 GSW "anos 90"
 """
 
+import re
 import sys
 
 import numpy as np
@@ -49,17 +50,68 @@ def carregar_elenco(dados, chave):
         conexao.close()
 
 
-def protagonista(box_a, box_b, siglas):
-    """Quem mais chamou o jogo (arremessos + lances livres) num jogo decisivo."""
-    candidatos = []
-    for sigla, box in zip(siglas, (box_a, box_b)):
-        arremessos = box.ARR.str.split("-").str[1].astype(int)
-        lances = box.LL.str.split("-").str[1].astype(int)
-        volume = arremessos + 0.44 * lances
-        i = volume.idxmax()
-        candidatos.append((volume[i], sigla, box.loc[i], arremessos[i]))
-    _, sigla, linha, arremessos = max(candidatos, key=lambda c: c[0])
-    return f"{linha.Jogador} ({sigla}) chamou a responsabilidade: {linha.MIN} minutos, {arremessos} arremessos e {linha.PTS} pontos"
+def atuacoes(box, sigla):
+    """Atuações raras num jogo de playoff (cortes escolhidos pela frequência real desde 1990-91).
+
+    Devolve (prioridade, selo, texto); quanto menor a prioridade, mais rara a atuação.
+    """
+    achados = []
+    for _, j in box.iterrows():
+        bolas_de_3 = int(j["3P"].split("-")[0])
+        dois_digitos = sum(v >= 10 for v in (j.PTS, j.REB, j.AST, j.ROB, j.TOC))
+        quem = f"{j.Jogador} ({sigla})"
+        if j.PTS >= 50:
+            achados.append((0, "50 pontos", f"{quem} explode com {j.PTS} pontos"))
+        elif j.PTS >= 40:
+            achados.append((2, "40 pontos", f"Noite de {j.PTS} pontos de {quem}"))
+        if dois_digitos >= 3:
+            achados.append((1, "triplo-duplo", f"Triplo-duplo de {quem}: {j.PTS} pts, {j.REB} reb, {j.AST} ast"))
+        elif j.PTS >= 20 and j.REB >= 20:
+            achados.append((1, "20-20", f"{quem} domina o garrafão: {j.PTS} pontos e {j.REB} rebotes"))
+        elif j.REB >= 20:
+            achados.append((3, "20 rebotes", f"{quem} pega {j.REB} rebotes"))
+        if j.AST >= 15:
+            achados.append((3, "assistências", f"{quem} distribui {j.AST} assistências"))
+        if bolas_de_3 >= 7:
+            achados.append((3, "chuva de 3", f"{quem} acerta {bolas_de_3} bolas de 3"))
+        if j.TOC >= 5:
+            achados.append((4, "tocos", f"{quem} dá {j.TOC} tocos"))
+        if j.ROB >= 6:
+            achados.append((4, "roubos", f"{quem} rouba {j.ROB} bolas"))
+    return achados
+
+
+def decidiu_no_fim(lances, a_venceu, siglas, box_vencedor):
+    """Quem fez a cesta que colocou o vencedor na frente de vez, se foi no último minuto."""
+    sigla_vencedor = siglas[0] if a_venceu else siglas[1]
+    virada = None
+    for lance in lances:
+        lider = siglas[0] if lance["pts_a"] > lance["pts_b"] else siglas[1] if lance["pts_b"] > lance["pts_a"] else None
+        if lider != sigla_vencedor:
+            virada = None
+        elif virada is None and lance["pontos"]:
+            virada = lance
+    fim = lances[-1]["segundo"]
+    if virada is None or fim - virada["segundo"] > 60:
+        return None
+    autor = re.match(r"^(.*?) (acerta|converte)", virada["texto"])
+    if not autor:
+        return None
+    curto = autor.group(1)
+    nome = next((n for n in box_vencedor.Jogador if n == curto or n.endswith(" " + curto)), curto)
+    return (0, "decidiu no fim", f"{nome} ({sigla_vencedor}) decide o jogo a {virada['relogio']} do fim")
+
+
+def destaques_do_jogo(box_a, box_b, lances, a_venceu, siglas, maximo=3):
+    achados = atuacoes(box_a, siglas[0]) + atuacoes(box_b, siglas[1])
+    no_fim = decidiu_no_fim(lances, a_venceu, siglas, box_a if a_venceu else box_b)
+    if no_fim:
+        achados.append(no_fim)
+    return [(selo, texto) for _, selo, texto in sorted(achados, key=lambda a: a[0])[:maximo]]
+
+
+def lideres(box):
+    return {estat: (box.loc[box[estat].idxmax(), "Jogador"], int(box[estat].max())) for estat in ("PTS", "REB", "AST")}
 
 
 def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoes):
@@ -129,7 +181,8 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
                       "vitorias_a": vitorias_a, "vitorias_b": vitorias_b, "box_a": box_a, "box_b": box_b,
                       "lances": lances, "inicio_final": inicio_do_final(lances),
                       "prorrogacoes": j["prorrogacoes"], "manchete": titulo,
-                      "decisivo": decisivo, "protagonista": protagonista(box_a, box_b, siglas) if decisivo else None})
+                      "decisivo": decisivo, "lideres": (lideres(box_a), lideres(box_b)),
+                      "destaques": destaques_do_jogo(box_a, box_b, lances, pts_a > pts_b, siglas)})
         if 4 in (vitorias_a, vitorias_b):
             return jogos
     return jogos
