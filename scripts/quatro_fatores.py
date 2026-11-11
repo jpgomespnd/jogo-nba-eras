@@ -1,4 +1,4 @@
-"""Calcula os quatro fatores de cada time por temporada regular e grava em fatores_time.
+"""Calcula os quatro fatores de cada time por temporada regular e grava em fatores_time e liga.
 
 Também imprime uma conferência de completude por temporada.
 """
@@ -13,31 +13,52 @@ SOMAS = [
 ]
 METRICAS = [
     "pace", "ortg", "drtg", "net",
-    "efg", "tov_pct", "orb_pct", "ft_rate", "fg3a_rate",
-    "opp_efg", "opp_tov_pct", "drb_pct", "opp_ft_rate", "opp_fg3a_rate",
+    "efg", "tov_pct", "orb_pct", "ft_rate", "fg3a_rate", "fg2_pct", "fg3_pct", "ft_pct", "fta_rate",
+    "opp_efg", "opp_tov_pct", "drb_pct", "opp_ft_rate", "opp_fg3a_rate", "opp_fg2_pct", "opp_fg3_pct", "opp_fta_rate",
 ]
+
+
+def posses(t):
+    return ((t.fga - t.oreb + t.tov + 0.44 * t.fta) + (t.opp_fga - t.opp_oreb + t.opp_tov + 0.44 * t.opp_fta)) / 2
 
 
 def calcular(totais):
     t = totais
-    posses = ((t.fga - t.oreb + t.tov + 0.44 * t.fta) + (t.opp_fga - t.opp_oreb + t.opp_tov + 0.44 * t.opp_fta)) / 2
+    p = posses(t)
     return t.assign(
-        posses=posses,
-        pace=posses / (t.minutes / 240),
-        ortg=100 * t.pts / posses,
-        drtg=100 * t.opp_pts / posses,
-        net=100 * (t.pts - t.opp_pts) / posses,
+        posses=p,
+        pace=p / (t.minutes / 240),
+        ortg=100 * t.pts / p,
+        drtg=100 * t.opp_pts / p,
+        net=100 * (t.pts - t.opp_pts) / p,
         efg=(t.fgm + 0.5 * t.fg3m) / t.fga,
-        tov_pct=t.tov / posses,
+        tov_pct=t.tov / p,
         orb_pct=t.oreb / (t.oreb + t.opp_dreb),
         ft_rate=t.ftm / t.fga,
         fg3a_rate=t.fg3a / t.fga,
+        fg2_pct=(t.fgm - t.fg3m) / (t.fga - t.fg3a),
+        fg3_pct=t.fg3m / t.fg3a,
+        ft_pct=t.ftm / t.fta,
+        fta_rate=t.fta / t.fga,
         opp_efg=(t.opp_fgm + 0.5 * t.opp_fg3m) / t.opp_fga,
-        opp_tov_pct=t.opp_tov / posses,
+        opp_tov_pct=t.opp_tov / p,
         drb_pct=t.dreb / (t.dreb + t.opp_oreb),
         opp_ft_rate=t.opp_ftm / t.opp_fga,
         opp_fg3a_rate=t.opp_fg3a / t.opp_fga,
+        opp_fg2_pct=(t.opp_fgm - t.opp_fg3m) / (t.opp_fga - t.opp_fg3a),
+        opp_fg3_pct=t.opp_fg3m / t.opp_fg3a,
+        opp_fta_rate=t.opp_fta / t.opp_fga,
     )
+
+
+def vantagem_de_mando(conexao):
+    jogos = pd.read_sql(
+        "SELECT c.* FROM vw_confrontos c JOIN games g USING (game_id) "
+        "WHERE c.season_type = 'regular' AND c.is_home = 1 AND g.is_neutral = 0",
+        conexao,
+    )
+    totais = jogos.groupby("season")[SOMAS].sum()
+    return (100 * (totais.pts - totais.opp_pts) / posses(totais)).rename("mando").reset_index()
 
 
 def montar_fatores(conexao):
@@ -52,7 +73,8 @@ def montar_fatores(conexao):
 
     # Média da liga: calculada sobre os totais da liga, não como média simples dos times.
     liga = calcular(times.groupby("season")[SOMAS].sum().reset_index())[["season", *METRICAS]]
-    times = times.merge(liga.add_prefix("liga_").rename(columns={"liga_season": "season"}), on="season")
+    liga = liga.merge(vantagem_de_mando(conexao), on="season")
+    times = times.merge(liga[["season", *METRICAS]].add_prefix("liga_").rename(columns={"liga_season": "season"}), on="season")
     for metrica in METRICAS:
         times[f"rel_{metrica}"] = times[metrica] - times[f"liga_{metrica}"]
     return times, liga
@@ -79,7 +101,7 @@ def conferir(conexao, times, liga):
         .agg(times=("team_id", "size"), jogos_min=("jogos", "min"), jogos_max=("jogos", "max"))
         .reset_index()
         .merge(playoffs, on="season", how="left")
-        .merge(liga[["season", "pace", "ortg", "efg", "fg3a_rate", "orb_pct", "ft_rate", "tov_pct"]], on="season")
+        .merge(liga[["season", "pace", "ortg", "efg", "fg3a_rate", "orb_pct", "ft_rate", "tov_pct", "mando"]], on="season")
     )
     print(resumo.to_string(index=False, float_format=lambda x: f"{x:.3f}"))
 
@@ -92,6 +114,7 @@ def main():
     try:
         times, liga = montar_fatores(conexao)
         times.to_sql("fatores_time", conexao, if_exists="replace", index=False)
+        liga.to_sql("liga", conexao, if_exists="replace", index=False)
         conferir(conexao, times, liga)
     finally:
         conexao.close()
