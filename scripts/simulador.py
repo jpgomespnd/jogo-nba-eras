@@ -9,8 +9,9 @@ from dataclasses import dataclass
 import numpy as np
 
 DESVIO_RITMO = 4.0
-# Calibrado para a margem simulada do mandante bater com a real de cada temporada.
+# Calibrados para a margem do mandante e o espalhamento dos placares baterem com os jogos reais.
 CALIBRACAO_MANDO = 0.65
+AMORTECIMENTO = 0.3
 FORMATOS = {
     "2-2-1-1-1": [1, 1, 0, 0, 1, 0, 1],
     "2-3-2": [1, 1, 0, 0, 0, 1, 1],
@@ -29,7 +30,7 @@ class Ataque:
     rebote_of: float
 
 
-def ataque(atacante, defensor, liga, ajuste_mando=0.0):
+def ataque(atacante, defensor, liga):
     fta_rate = liga["fta_rate"] + atacante["rel_fta_rate"] + defensor["rel_opp_fta_rate"]
     # Cada ida à linha vale dois lances livres; fta_rate é lances livres por arremesso de quadra.
     idas_por_arremesso = fta_rate / 2
@@ -37,58 +38,77 @@ def ataque(atacante, defensor, liga, ajuste_mando=0.0):
         tov=liga["tov_pct"] + atacante["rel_tov_pct"] + defensor["rel_opp_tov_pct"],
         lance_livre=idas_por_arremesso / (1 + idas_por_arremesso),
         tentativa_3=liga["fg3a_rate"] + atacante["rel_fg3a_rate"] + defensor["rel_opp_fg3a_rate"],
-        acerto_2=(liga["fg2_pct"] + atacante["rel_fg2_pct"] + defensor["rel_opp_fg2_pct"]) * (1 + ajuste_mando),
-        acerto_3=(liga["fg3_pct"] + atacante["rel_fg3_pct"] + defensor["rel_opp_fg3_pct"]) * (1 + ajuste_mando),
+        acerto_2=liga["fg2_pct"] + atacante["rel_fg2_pct"] + defensor["rel_opp_fg2_pct"],
+        acerto_3=liga["fg3_pct"] + atacante["rel_fg3_pct"] + defensor["rel_opp_fg3_pct"],
         acerto_ll=liga["ft_pct"] + atacante["rel_ft_pct"],
         rebote_of=liga["orb_pct"] + atacante["rel_orb_pct"] - defensor["rel_drb_pct"],
     )
 
 
-def pontos_por_posse(a, quantidade, rng):
-    pontos = np.zeros(quantidade, dtype=np.int16)
+def pontos_por_posse(a, fator_acerto, rng):
+    """Uma posse para cada jogo; fator_acerto multiplica o aproveitamento dos arremessos."""
+    quantidade = fator_acerto.size
+    pontos = np.zeros(quantidade, dtype=np.int64)
     ativa = rng.random(quantidade) >= a.tov
     while ativa.any():
         idx = np.flatnonzero(ativa)
         n = idx.size
         foi_a_linha = rng.random(n) < a.lance_livre
-        lances = (rng.random(n) < a.acerto_ll).astype(np.int16) + (rng.random(n) < a.acerto_ll)
+        lances = (rng.random(n) < a.acerto_ll).astype(np.int64) + (rng.random(n) < a.acerto_ll)
         de_3 = rng.random(n) < a.tentativa_3
-        acertou = rng.random(n) < np.where(de_3, a.acerto_3, a.acerto_2)
-        pontos[idx] += np.where(foi_a_linha, lances, np.where(acertou, np.where(de_3, 3, 2), 0)).astype(np.int16)
+        acertou = rng.random(n) < np.where(de_3, a.acerto_3, a.acerto_2) * fator_acerto[idx]
+        pontos[idx] += np.where(foi_a_linha, lances, np.where(acertou, np.where(de_3, 3, 2), 0))
         pegou_rebote = ~foi_a_linha & ~acertou & (rng.random(n) < a.rebote_of)
         ativa[:] = False
         ativa[idx[pegou_rebote]] = True
     return pontos
 
 
-def somar_posses(a, posses, rng):
-    maximo = int(posses.max())
-    pontos = pontos_por_posse(a, posses.size * maximo, rng).reshape(posses.size, maximo)
-    return (pontos * (np.arange(maximo) < posses[:, None])).sum(axis=1)
+def pontos_esperados(a, fator_acerto):
+    acerto = a.tentativa_3 * a.acerto_3 * fator_acerto + (1 - a.tentativa_3) * a.acerto_2 * fator_acerto
+    por_tentativa = a.lance_livre * 2 * a.acerto_ll + (1 - a.lance_livre) * (
+        a.tentativa_3 * 3 * a.acerto_3 + (1 - a.tentativa_3) * 2 * a.acerto_2) * fator_acerto
+    erro = (1 - a.lance_livre) * (1 - acerto)
+    return (1 - a.tov) * por_tentativa / (1 - erro * a.rebote_of)
 
 
-def simular_jogos(casa, fora, liga, n, rng, neutro=False):
-    """Devolve (pontos da casa, pontos de fora) de n jogos."""
-    mando = 0.0 if neutro else liga["mando"] / (2 * CALIBRACAO_MANDO * liga["ortg"])
-    a_casa = ataque(casa, fora, liga, +mando)
-    a_fora = ataque(fora, casa, liga, -mando)
+def jogar(a_casa, a_fora, vantagem, posses, pts_casa, pts_fora, rng):
+    # Quem abre vantagem além do esperado relaxa (ou põe os reservas) e o placar volta para perto do esperado.
+    saldo_por_posse = pontos_esperados(a_casa, 1 + vantagem) - pontos_esperados(a_fora, 1 - vantagem)
+    inicio = pts_casa - pts_fora
+    for posse in range(int(posses.max())):
+        em_jogo = np.flatnonzero(posse < posses)
+        sorte = (pts_casa[em_jogo] - pts_fora[em_jogo] - inicio[em_jogo] - posse * saldo_por_posse) / 100
+        ajuste = vantagem - AMORTECIMENTO * sorte
+        pts_casa[em_jogo] += pontos_por_posse(a_casa, 1 + ajuste, rng)
+        pts_fora[em_jogo] += pontos_por_posse(a_fora, 1 - ajuste, rng)
+
+
+def simular_jogos(casa, fora, liga, n, rng, neutro=False, peso_mando=1.0):
+    """Devolve (pontos da casa, pontos de fora) de n jogos.
+
+    "bonus" de cada time (pontos a cada 100 posses) soma força que os quatro fatores não captam.
+    """
+    mando = 0.0 if neutro else peso_mando * liga["mando"]
+    bonus = casa.get("bonus", 0.0) - fora.get("bonus", 0.0)
+    vantagem = (mando + bonus) / (2 * CALIBRACAO_MANDO * liga["ortg"])
+    a_casa, a_fora = ataque(casa, fora, liga), ataque(fora, casa, liga)
     ritmo = liga["pace"] + casa["rel_pace"] + fora["rel_pace"]
 
+    pts_casa, pts_fora = np.zeros(n, dtype=np.int64), np.zeros(n, dtype=np.int64)
     posses = np.maximum(rng.normal(ritmo, DESVIO_RITMO, n).round().astype(int), 60)
-    pts_casa = somar_posses(a_casa, posses, rng)
-    pts_fora = somar_posses(a_fora, posses, rng)
+    jogar(a_casa, a_fora, vantagem, posses, pts_casa, pts_fora, rng)
 
-    empate = pts_casa == pts_fora
-    posses_prorrogacao = np.full(n, round(ritmo * 5 / 48))
-    while empate.any():
-        k = int(empate.sum())
-        pts_casa[empate] += somar_posses(a_casa, posses_prorrogacao[:k], rng)
-        pts_fora[empate] += somar_posses(a_fora, posses_prorrogacao[:k], rng)
-        empate = pts_casa == pts_fora
+    empate = np.flatnonzero(pts_casa == pts_fora)
+    while empate.size:
+        pc, pf = pts_casa[empate], pts_fora[empate]
+        jogar(a_casa, a_fora, vantagem, np.full(empate.size, round(ritmo * 5 / 48)), pc, pf, rng)
+        pts_casa[empate], pts_fora[empate] = pc, pf
+        empate = np.flatnonzero(pts_casa == pts_fora)
     return pts_casa, pts_fora
 
 
-def simular_series(a, b, liga, n=2000, formato="2-2-1-1-1", neutro=False, seed=None):
+def simular_series(a, b, liga, n=2000, formato="2-2-1-1-1", neutro=False, peso_mando=1.0, seed=None):
     """Time a tem o mando da série. Devolve a chance de a vencer e o resumo das séries."""
     rng = np.random.default_rng(seed)
     mandos = FORMATOS[formato]
@@ -96,9 +116,9 @@ def simular_series(a, b, liga, n=2000, formato="2-2-1-1-1", neutro=False, seed=N
     pts_b = np.empty_like(pts_a)
     for jogo, a_em_casa in enumerate(mandos):
         if a_em_casa:
-            pts_a[:, jogo], pts_b[:, jogo] = simular_jogos(a, b, liga, n, rng, neutro)
+            pts_a[:, jogo], pts_b[:, jogo] = simular_jogos(a, b, liga, n, rng, neutro, peso_mando)
         else:
-            pts_b[:, jogo], pts_a[:, jogo] = simular_jogos(b, a, liga, n, rng, neutro)
+            pts_b[:, jogo], pts_a[:, jogo] = simular_jogos(b, a, liga, n, rng, neutro, peso_mando)
 
     precisa = len(mandos) // 2 + 1
     vitorias_a = np.cumsum(pts_a > pts_b, axis=1)

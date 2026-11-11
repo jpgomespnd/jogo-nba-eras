@@ -1,5 +1,6 @@
 """Prevê cada série de playoff real (1990-91 em diante) usando só a temporada regular e mede o acerto.
 
+Os pesos da força de cada temporada são aprendidos sem os playoffs dela (validação cruzada).
 Grava o resultado série a série em data/validacao_playoffs.csv.
 """
 
@@ -7,60 +8,36 @@ import numpy as np
 import pandas as pd
 
 from banco import RAIZ_DO_PROJETO, conectar
+from forca import ajustar, carregar, forca
 from simulador import simular_series
 
 SIMULACOES = 2000
-ULTIMA_FINAL_2_3_2 = "2012-13"
 CAMINHO_SAIDA = RAIZ_DO_PROJETO / "data" / "validacao_playoffs.csv"
 
 
-def montar_series(conexao):
-    jogos = pd.read_sql(
-        "SELECT g.season, g.game_id, g.game_date, g.is_neutral, t.team_id, t.is_home, t.won "
-        "FROM games g JOIN team_games t USING (game_id) WHERE g.season_type = 'playoffs'",
-        conexao,
-    )
-    pares = jogos.groupby("game_id").team_id.agg(lambda ids: tuple(sorted(ids))).rename("par")
-    jogos = jogos.join(pares, on="game_id").sort_values(["game_date", "game_id"])
-
-    series = []
-    for (temporada, par), grupo in jogos.groupby(["season", "par"], sort=False):
-        vitorias = grupo[grupo.won == 1].team_id.value_counts()
-        primeiro_jogo = grupo[grupo.game_id == grupo.game_id.iloc[0]]
-        com_mando = primeiro_jogo[primeiro_jogo.is_home == 1].team_id
-        mando = int(com_mando.iloc[0]) if len(com_mando) else par[0]
-        series.append({
-            "season": temporada,
-            "inicio": grupo.game_date.min(),
-            "mando": mando,
-            "outro": par[1] if mando == par[0] else par[0],
-            "vencedor": int(vitorias.index[0]),
-            "jogos": grupo.game_id.nunique(),
-            "melhor_de": 5 if vitorias.max() == 3 else 7,
-            "neutro": bool(grupo.is_neutral.all()),
-        })
-    series = pd.DataFrame(series)
-    final = series.groupby("season").inicio.transform("max") == series.inicio
-    series["formato"] = np.select(
-        [series.melhor_de == 5, final & (series.season <= ULTIMA_FINAL_2_3_2)], ["2-2-1", "2-3-2"], "2-2-1-1-1"
-    )
-    return series
-
-
-def prever(series, times, liga):
+def prever(series, times, liga, variaveis, jogos):
     previsoes = []
-    for i, s in enumerate(series.itertuples()):
-        a, b = times.loc[(s.season, s.mando)], times.loc[(s.season, s.outro)]
-        r = simular_series(a, b, liga.loc[s.season], n=SIMULACOES, formato=s.formato, neutro=s.neutro, seed=i)
-        previsoes.append({
-            "time_mando": a.team_abbreviation,
-            "time_outro": b.team_abbreviation,
-            "prob_mando": r["chance_a"],
-            "jogos_previstos": r["jogos_medios"],
-            "net_mando": a.net,
-            "net_outro": b.net,
-        })
-    return pd.concat([series.reset_index(drop=True), pd.DataFrame(previsoes)], axis=1)
+    for temporada in series.season.unique():
+        pesos = ajustar(jogos, excluir=temporada)
+        bonus = forca(variaveis, pesos) - variaveis.net
+        for i in np.flatnonzero(series.season.values == temporada):
+            s = series.iloc[i]
+            a = times.loc[(temporada, s.mando)].copy()
+            b = times.loc[(temporada, s.outro)].copy()
+            a["bonus"] = bonus[(temporada, s.mando)] + pesos["peso_desgaste"] * s.jogos_po_mando
+            b["bonus"] = bonus[(temporada, s.outro)] + pesos["peso_desgaste"] * s.jogos_po_outro
+            r = simular_series(a, b, liga.loc[temporada], n=SIMULACOES, formato=s.formato, neutro=s.neutro,
+                               peso_mando=pesos["peso_mando"], seed=i)
+            previsoes.append({
+                "indice": i,
+                "time_mando": a.team_abbreviation,
+                "time_outro": b.team_abbreviation,
+                "prob_mando": r["chance_a"],
+                "jogos_previstos": r["jogos_medios"],
+                "net_mando": a.net,
+                "net_outro": b.net,
+            })
+    return series.join(pd.DataFrame(previsoes).set_index("indice"))
 
 
 def relatorio(r):
@@ -100,13 +77,13 @@ def relatorio(r):
 def main():
     conexao = conectar()
     try:
-        series = montar_series(conexao)
+        variaveis, jogos, series = carregar(conexao)
         times = pd.read_sql("SELECT * FROM fatores_time", conexao).set_index(["season", "team_id"])
         liga = pd.read_sql("SELECT * FROM liga", conexao).set_index("season")
     finally:
         conexao.close()
 
-    resultado = prever(series, times, liga)
+    resultado = prever(series, times, liga, variaveis, jogos)
     resultado.to_csv(CAMINHO_SAIDA, index=False)
     relatorio(resultado)
 

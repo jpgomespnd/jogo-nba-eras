@@ -5,7 +5,7 @@ Também imprime uma conferência de completude por temporada.
 
 import pandas as pd
 
-from banco import conectar
+from banco import conectar, criar_tabelas
 
 SOMAS = [
     "minutes", "pts", "fgm", "fga", "fg3m", "fg3a", "ftm", "fta", "oreb", "dreb", "tov",
@@ -53,9 +53,7 @@ def calcular(totais):
 
 def vantagem_de_mando(conexao):
     jogos = pd.read_sql(
-        "SELECT c.* FROM vw_confrontos c JOIN games g USING (game_id) "
-        "WHERE c.season_type = 'regular' AND c.is_home = 1 AND g.is_neutral = 0",
-        conexao,
+        "SELECT * FROM vw_confrontos WHERE season_type = 'regular' AND is_home = 1 AND is_neutral = 0", conexao
     )
     totais = jogos.groupby("season")[SOMAS].sum()
     return (100 * (totais.pts - totais.opp_pts) / posses(totais)).rename("mando").reset_index()
@@ -70,6 +68,12 @@ def montar_fatores(conexao):
         .reset_index()
     )
     times = calcular(times)
+
+    # Força dos adversários enfrentados: média do saldo de cada um, jogo a jogo.
+    saldo = times.set_index(["season", "team_id"]).net
+    jogos["saldo_adversario"] = saldo.reindex(pd.MultiIndex.from_arrays([jogos.season, jogos.opp_team_id])).values
+    times = times.merge(jogos.groupby(["season", "team_id"]).saldo_adversario.mean().rename("sos").reset_index())
+    times["net_adj"] = times.net + times.sos
 
     # Média da liga: calculada sobre os totais da liga, não como média simples dos times.
     liga = calcular(times.groupby("season")[SOMAS].sum().reset_index())[["season", *METRICAS]]
@@ -112,6 +116,7 @@ def conferir(conexao, times, liga):
 def main():
     conexao = conectar()
     try:
+        criar_tabelas(conexao)
         times, liga = montar_fatores(conexao)
         times.to_sql("fatores_time", conexao, if_exists="replace", index=False)
         liga.to_sql("liga", conexao, if_exists="replace", index=False)
