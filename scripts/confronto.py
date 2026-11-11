@@ -15,6 +15,11 @@ from eras import ERAS, ambiente, carregar, traduzir
 from jogo_detalhado import jogar_detalhado
 from simulador import FORMATOS, simular_series
 
+SEGUNDOS_REGULAMENTO = 48 * 60
+# Final apertado: até 5 pontos de diferença com 2 minutos para acabar.
+SEGUNDOS_FINAL = 120
+DIFERENCA_APERTADO = 5
+
 
 def buscar_time(dados, temporada, texto):
     da_temporada = dados["times"].loc[temporada]
@@ -79,6 +84,16 @@ def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoe
     return texto
 
 
+def inicio_do_final(lances):
+    """Índice do primeiro lance dos 2 minutos finais se o jogo estava apertado (até 5 pontos); senão None."""
+    antes = (0, 0)
+    for k, lance in enumerate(lances):
+        if lance["segundo"] >= SEGUNDOS_REGULAMENTO - SEGUNDOS_FINAL:
+            return k if abs(antes[0] - antes[1]) <= DIFERENCA_APERTADO else None
+        antes = (lance["pts_a"], lance["pts_b"])
+    return None
+
+
 def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B"), seed=None):
     """Uma série possível, jogo a jogo, com box score, lances e manchete de cada jogo.
 
@@ -108,9 +123,12 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
             titulo = manchete(numero, siglas[0], siglas[1], box_a, box_b, j["prorrogacoes"])
         else:
             titulo = manchete(numero, siglas[1], siglas[0], box_b, box_a, j["prorrogacoes"])
+        lances = [{**l, "pts_a": l["placar_casa"] if a_em_casa else l["placar_fora"],
+                   "pts_b": l["placar_fora"] if a_em_casa else l["placar_casa"]} for l in j["lances"]]
         jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
                       "vitorias_a": vitorias_a, "vitorias_b": vitorias_b, "box_a": box_a, "box_b": box_b,
-                      "lances": j["lances"], "prorrogacoes": j["prorrogacoes"], "manchete": titulo,
+                      "lances": lances, "inicio_final": inicio_do_final(lances),
+                      "prorrogacoes": j["prorrogacoes"], "manchete": titulo,
                       "decisivo": decisivo, "protagonista": protagonista(box_a, box_b, siglas) if decisivo else None})
         if 4 in (vitorias_a, vitorias_b):
             return jogos

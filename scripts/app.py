@@ -3,6 +3,8 @@
 Rodar da raiz do projeto: streamlit run scripts/app.py
 """
 
+import time
+
 import altair as alt
 import pandas as pd
 import streamlit as st
@@ -12,6 +14,8 @@ from confronto import carregar_elenco, narrar_serie, preparar, simular_confronto
 from eras import ERAS, carregar
 
 SIMULACOES = 10000
+# Segundos de pausa entre um lance e outro no final narrado.
+VELOCIDADES = {"1x": 1.6, "2x": 0.8, "4x": 0.4}
 COR_A, COR_B = "#2a78d6", "#eb6834"
 DESCRICAO_ERAS = {
     "anos 90": "Jogo lento e físico, com hand-checking e poucas bolas de 3. O arremesso de 2 vale 0,96 ponto e o de 3 vale 1,03: quem chutava de longe explorava uma vantagem que a liga ignorava.",
@@ -114,27 +118,78 @@ def comparar_estilos(chave_a, chave_b, era):
     return pd.DataFrame({nome(chave_a)[1]: na_era(a), nome(chave_b)[1]: na_era(b)})
 
 
+def concluir_final():
+    estado = st.session_state
+    estado.mostrados = estado.pendente + 1
+    estado.pendente, estado.assistindo = None, False
+
+
+def placar_do_final(j, sigla_a, sigla_b):
+    antes = j["lances"][j["inicio_final"] - 1]
+    return f"{sigla_a} {antes['pts_a']} x {antes['pts_b']} {sigla_b}"
+
+
+@st.dialog("Final apertado!")
+def escolher_final(j, sigla_a, sigla_b):
+    st.markdown(f"**Jogo {j['jogo']}**: {placar_do_final(j, sigla_a, sigla_b)} com 2:00 para acabar o 4º quarto.")
+    velocidade = st.radio("Velocidade", list(VELOCIDADES), horizontal=True, index=0)
+    c1, c2 = st.columns(2)
+    if c1.button("Simular até o fim", use_container_width=True):
+        concluir_final()
+        st.rerun()
+    if c2.button("Acompanhar segundo a segundo", type="primary", use_container_width=True):
+        st.session_state.assistindo = True
+        st.session_state.velocidade = velocidade
+        st.rerun()
+
+
+def assistir_final(j, sigla_a, sigla_b):
+    st.button("Pular para o fim", on_click=concluir_final, use_container_width=True)
+    painel = st.empty()
+    lances = j["lances"][j["inicio_final"]:]
+    pausa = VELOCIDADES[st.session_state.get("velocidade", "1x")]
+    for k, lance in enumerate(lances):
+        with painel.container(border=True):
+            st.markdown(f"### {sigla_a} {lance['pts_a']} x {lance['pts_b']} {sigla_b}")
+            st.caption(f"Jogo {j['jogo']} · {lance['periodo']} · {lance['relogio']}")
+            for anterior in reversed(lances[max(0, k - 5):k + 1]):
+                texto = f"{anterior['relogio']} · **{anterior['time']}** · {anterior['texto']}"
+                st.markdown(f"**{texto}**" if anterior is lance and lance["pontos"] else texto)
+        time.sleep(pausa)
+    time.sleep(pausa)
+    concluir_final()
+    st.rerun()
+
+
 def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     contexto = (chave_a, chave_b, era, mando)
     estado = st.session_state
     if estado.get("contexto") != contexto:
         estado.contexto, estado.semente, estado.mostrados = contexto, 0, 0
+        estado.pendente, estado.assistindo = None, False
 
     jogos = serie(chave_a, chave_b, era, mando, sigla_a, sigla_b, estado.semente)
 
-    def mostrar(quantidade):
-        estado.mostrados = quantidade
+    def proximo():
+        k = estado.mostrados
+        if jogos[k]["inicio_final"] is not None:
+            estado.pendente = k
+        else:
+            estado.mostrados = k + 1
+
+    def ver_tudo():
+        estado.mostrados, estado.pendente, estado.assistindo = len(jogos), None, False
 
     def nova_serie():
         estado.semente += 1
-        estado.mostrados = 0
+        estado.mostrados, estado.pendente, estado.assistindo = 0, None, False
 
     acabou = estado.mostrados >= len(jogos)
+    em_andamento = estado.pendente is not None
     botoes = st.columns(3)
-    botoes[0].button("Começar a série" if estado.mostrados == 0 else "Próximo jogo", disabled=acabou,
-                     on_click=mostrar, args=(estado.mostrados + 1,), use_container_width=True)
-    botoes[1].button("Ver a série inteira", disabled=acabou, on_click=mostrar, args=(len(jogos),),
-                     use_container_width=True)
+    botoes[0].button("Começar a série" if estado.mostrados == 0 else "Próximo jogo", disabled=acabou or em_andamento,
+                     on_click=proximo, use_container_width=True)
+    botoes[1].button("Ver a série inteira", disabled=acabou, on_click=ver_tudo, use_container_width=True)
     botoes[2].button("Nova série", on_click=nova_serie, use_container_width=True)
 
     for j in jogos[:estado.mostrados]:
@@ -152,6 +207,14 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
                 tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
                 st.markdown(f"**{sigla}**")
                 st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
+    if em_andamento:
+        j = jogos[estado.pendente]
+        if estado.assistindo:
+            assistir_final(j, sigla_a, sigla_b)
+        else:
+            st.info(f"Jogo {j['jogo']} em andamento: {placar_do_final(j, sigla_a, sigla_b)} com 2:00 para acabar.")
+            escolher_final(j, sigla_a, sigla_b)
+        return None
     if estado.mostrados < len(jogos):
         return None
     ultimo = jogos[-1]

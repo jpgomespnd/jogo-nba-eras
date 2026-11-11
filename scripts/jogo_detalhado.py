@@ -175,9 +175,10 @@ def jogar_detalhado(casa, fora, liga, elenco_casa, elenco_fora, taxas_casa, taxa
                 fator = 1 + ajuste if quem == "casa" else 1 - ajuste
                 pontos, textos = posse(atk, defesa, fator, segundo, contexto)
                 placar[quem] += pontos
-                periodo, tempo = relogio(min(segundo, inicio + segundos - 1))
+                segundo = min(segundo, inicio + segundos - 1)
+                periodo, tempo = relogio(segundo)
                 for texto in textos:
-                    lances.append({"periodo": periodo, "relogio": tempo, "time": atk.sigla, "texto": texto,
+                    lances.append({"segundo": segundo, "periodo": periodo, "relogio": tempo, "time": atk.sigla, "texto": texto,
                                    "pontos": pontos if texto is textos[-1] else 0,
                                    "placar_casa": placar["casa"], "placar_fora": placar["fora"]})
 
