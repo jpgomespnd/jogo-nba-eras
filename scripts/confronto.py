@@ -9,8 +9,10 @@ import sys
 import numpy as np
 
 from banco import conectar
+from elenco import montar_elenco, taxas_do_time
 from eras import ERAS, ambiente, carregar, traduzir
-from simulador import FORMATOS, simular_jogos, simular_series
+from jogo_detalhado import jogar_detalhado
+from simulador import FORMATOS, simular_series
 
 
 def buscar_time(dados, temporada, texto):
@@ -29,23 +31,65 @@ def preparar(dados, time_a, time_b, era):
     return traduzir(time_a, dados, espalhamento), traduzir(time_b, dados, espalhamento), liga
 
 
-def narrar_serie(dados, time_a, time_b, era, mando="a", seed=None):
-    """Uma série possível, jogo a jogo: lista com o placar de cada jogo e quem jogou em casa."""
+def carregar_elenco(dados, chave):
+    """Rotação e taxas de eventos (assistências, roubos, tocos, faltas) de um time-temporada."""
+    conexao = conectar()
+    try:
+        return montar_elenco(conexao, chave[0], chave[1]), taxas_do_time(conexao, chave[0], chave[1], dados["times"])
+    finally:
+        conexao.close()
+
+
+def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoes):
+    destaque = box_vencedor.loc[box_vencedor.PTS.idxmax()]
+    bolas_de_3 = int(destaque["3P"].split("-")[0])
+    feito = f"{destaque.Jogador} faz {destaque.PTS}"
+    if bolas_de_3 >= 5:
+        feito += f" com {bolas_de_3} bolas de 3"
+    elif destaque.REB >= 12:
+        feito += f" e pega {destaque.REB} rebotes"
+    elif destaque.AST >= 10:
+        feito += f" e dá {destaque.AST} assistências"
+    texto = f"{feito} e o {vencedor} vence o jogo {numero}"
+    if prorrogacoes:
+        texto += " na prorrogação" if prorrogacoes == 1 else f" em {prorrogacoes} prorrogações"
+    do_vencedor = list(box_vencedor[box_vencedor.eliminado].Jogador)
+    do_perdedor = list(box_perdedor[box_perdedor.eliminado].Jogador)
+    if do_vencedor:
+        texto += f", mesmo com {' e '.join(do_vencedor)} eliminado{'s' if len(do_vencedor) > 1 else ''} por faltas"
+    if do_perdedor:
+        texto += f". O {perdedor} perdeu {' e '.join(do_perdedor)} por faltas"
+    return texto
+
+
+def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B"), seed=None):
+    """Uma série possível, jogo a jogo, com box score, lances e manchete de cada jogo.
+
+    elencos: ((elenco_a, taxas_a), (elenco_b, taxas_b)), de carregar_elenco.
+    """
     a, b, liga = preparar(dados, time_a, time_b, era)
+    (elenco_a, taxas_a), (elenco_b, taxas_b) = elencos
     rng = np.random.default_rng(seed)
     neutro = mando == "neutro"
+    peso = dados["pesos"].peso_mando
     jogos, vitorias_a, vitorias_b = [], 0, 0
     for numero, primeiro_em_casa in enumerate(FORMATOS["2-2-1-1-1"], start=1):
         a_em_casa = bool(primeiro_em_casa) != (mando == "b")
         if a_em_casa:
-            pts_a, pts_b = simular_jogos(a, b, liga, 1, rng, neutro, dados["pesos"].peso_mando)
+            j = jogar_detalhado(a, b, liga, elenco_a, elenco_b, taxas_a, taxas_b, rng, neutro, peso, siglas)
+            pts_a, pts_b, box_a, box_b = j["pts_casa"], j["pts_fora"], j["box_casa"], j["box_fora"]
         else:
-            pts_b, pts_a = simular_jogos(b, a, liga, 1, rng, neutro, dados["pesos"].peso_mando)
-        pts_a, pts_b = int(pts_a[0]), int(pts_b[0])
+            j = jogar_detalhado(b, a, liga, elenco_b, elenco_a, taxas_b, taxas_a, rng, neutro, peso, siglas[::-1])
+            pts_a, pts_b, box_a, box_b = j["pts_fora"], j["pts_casa"], j["box_fora"], j["box_casa"]
         vitorias_a += pts_a > pts_b
         vitorias_b += pts_b > pts_a
+        if pts_a > pts_b:
+            titulo = manchete(numero, siglas[0], siglas[1], box_a, box_b, j["prorrogacoes"])
+        else:
+            titulo = manchete(numero, siglas[1], siglas[0], box_b, box_a, j["prorrogacoes"])
         jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
-                      "vitorias_a": vitorias_a, "vitorias_b": vitorias_b})
+                      "vitorias_a": vitorias_a, "vitorias_b": vitorias_b, "box_a": box_a, "box_b": box_b,
+                      "lances": j["lances"], "prorrogacoes": j["prorrogacoes"], "manchete": titulo})
         if 4 in (vitorias_a, vitorias_b):
             return jogos
     return jogos

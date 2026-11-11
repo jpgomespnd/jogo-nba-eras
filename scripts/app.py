@@ -8,7 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from banco import conectar
-from confronto import narrar_serie, preparar, simular_confronto
+from confronto import carregar_elenco, narrar_serie, preparar, simular_confronto
 from eras import ERAS, carregar
 
 SIMULACOES = 10000
@@ -34,6 +34,18 @@ def dados():
 def simular(chave_a, chave_b, era, mando):
     d = dados()
     return simular_confronto(d, d["times"].loc[chave_a], d["times"].loc[chave_b], era, mando, n=SIMULACOES, seed=1)
+
+
+@st.cache_data
+def elenco(chave):
+    return carregar_elenco(dados(), chave)
+
+
+@st.cache_data
+def serie(chave_a, chave_b, era, mando, sigla_a, sigla_b, semente):
+    d = dados()
+    return narrar_serie(d, d["times"].loc[chave_a], d["times"].loc[chave_b], era, (elenco(chave_a), elenco(chave_b)),
+                        mando, (sigla_a, sigla_b), seed=semente)
 
 
 def escolher_time(rotulo, coluna, temporada_padrao, sigla_padrao):
@@ -108,8 +120,7 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     if estado.get("contexto") != contexto:
         estado.contexto, estado.semente, estado.mostrados = contexto, 0, 0
 
-    d = dados()
-    jogos = narrar_serie(d, d["times"].loc[chave_a], d["times"].loc[chave_b], era, mando, seed=estado.semente)
+    jogos = serie(chave_a, chave_b, era, mando, sigla_a, sigla_b, estado.semente)
 
     def mostrar(quantidade):
         estado.mostrados = quantidade
@@ -127,12 +138,18 @@ def serie_narrada(chave_a, chave_b, era, mando, sigla_a, sigla_b):
     botoes[2].button("Nova série", on_click=nova_serie, use_container_width=True)
 
     for j in jogos[:estado.mostrados]:
-        vencedor = sigla_a if j["pts_a"] > j["pts_b"] else sigla_b
         local = "quadra neutra" if j["a_em_casa"] is None else f"em casa: {sigla_a if j['a_em_casa'] else sigla_b}"
+        prorrogacao = " · prorrogação" if j["prorrogacoes"] else ""
         st.markdown(
-            f"**Jogo {j['jogo']}** · {sigla_a} **{j['pts_a']}** x **{j['pts_b']}** {sigla_b} · {local} · "
-            f"vitória do {vencedor} · série {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}"
+            f"**Jogo {j['jogo']}** · {sigla_a} **{j['pts_a']}** x **{j['pts_b']}** {sigla_b} · {local}{prorrogacao} · "
+            f"série {sigla_a} {j['vitorias_a']}-{j['vitorias_b']} {sigla_b}  \n{j['manchete']}"
         )
+        with st.expander(f"Box score do jogo {j['jogo']}"):
+            for sigla, box in ((sigla_a, j["box_a"]), (sigla_b, j["box_b"])):
+                tabela = box.copy()
+                tabela["Jogador"] = [f"{n} (eliminado)" if e else n for n, e in zip(tabela.Jogador, tabela.eliminado)]
+                st.markdown(f"**{sigla}**")
+                st.dataframe(tabela.drop(columns="eliminado"), hide_index=True, use_container_width=True)
     if estado.mostrados < len(jogos):
         return None
     ultimo = jogos[-1]
