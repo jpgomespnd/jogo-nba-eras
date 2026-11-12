@@ -1,4 +1,5 @@
 import { useContext } from "react";
+import { ContextoInicio } from "../navegacao.js";
 import { ContextoVisual, VISUAIS } from "../visual.js";
 import Logo from "./Logo.jsx";
 
@@ -18,10 +19,23 @@ function SeletorVisual() {
 }
 
 export function Topo({ children }) {
+  const irParaInicio = useContext(ContextoInicio);
   return (
     <header className="topo">
       <div className="marca">
-        <Logo />
+        {/* Link de verdade: clique comum volta para a escolha sem recarregar; abrir em nova aba também funciona. */}
+        <a
+          className="logo-link"
+          href="/"
+          aria-label="What If Hoops, back to the start"
+          onClick={(e) => {
+            if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+            e.preventDefault();
+            irParaInicio();
+          }}
+        >
+          <Logo />
+        </a>
         <span className="ao-vivo">LIVE</span>
       </div>
       {children}

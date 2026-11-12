@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { temaDaEra } from "./formato.js";
 import Escolha from "./telas/Escolha.jsx";
 import Revelacao from "./telas/Revelacao.jsx";
+import { ContextoInicio } from "./navegacao.js";
 import Serie from "./telas/Serie.jsx";
 import { ContextoVisual, salvarVisual, visualSalvo } from "./visual.js";
 
@@ -74,5 +75,9 @@ export default function App() {
     pagina = <Escolha escolha={escolha} setEscolha={setEscolha} focarEra={focarEra} aoComecar={() => irPara("serie")} />;
   }
 
-  return <ContextoVisual value={{ visual, setVisual }}>{pagina}</ContextoVisual>;
+  return (
+    <ContextoVisual value={{ visual, setVisual }}>
+      <ContextoInicio value={() => irPara("escolha")}>{pagina}</ContextoInicio>
+    </ContextoVisual>
+  );
 }

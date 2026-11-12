@@ -169,7 +169,22 @@ code {
   color: var(--texto);
 }
 
+.logo-link {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo-link:hover .logo-hoops {
+  color: var(--texto);
+}
+
+.logo-link:hover .logo-simbolo {
+  transform: rotate(-8deg);
+}
+
 .logo-simbolo {
+  transition: transform 150ms ease;
   width: 24px;
   height: 39px;
   flex: none;
