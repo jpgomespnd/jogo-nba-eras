@@ -137,7 +137,31 @@ def lideres(box):
     return {estat: (box.loc[box[estat].idxmax(), "Jogador"], int(box[estat].max())) for estat in ("PTS", "REB", "AST")}
 
 
-def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoes):
+def game_score(box):
+    """Game Score de Hollinger de cada linha do box score (sem separar rebote ofensivo e defensivo: 0,5 por rebote)."""
+    def feitos(coluna):
+        partes = box[coluna].str.split("-", expand=True).astype(int)
+        return partes[0], partes[1]
+
+    fgm, fga = feitos("ARR")
+    ftm, fta = feitos("LL")
+    return (box.PTS + 0.4 * fgm - 0.7 * fga - 0.4 * (fta - ftm) + 0.5 * box.REB + box.ROB
+            + 0.7 * box.AST + 0.7 * box.TOC - 0.4 * box.FAL - box.ERR)
+
+
+def mvp_da_serie(jogos, a_venceu):
+    """Jogador do time campeão com a maior soma de Game Score na série, com suas médias por jogo."""
+    boxes = [j["box_a"] if a_venceu else j["box_b"] for j in jogos]
+    linhas = pd.concat([box.assign(game_score=game_score(box)) for box in boxes])
+    por_jogador = linhas.groupby("Jogador").agg(jogos=("PTS", "size"), total=("game_score", "sum"),
+                                                PTS=("PTS", "mean"), REB=("REB", "mean"), AST=("AST", "mean"))
+    melhor = por_jogador.total.idxmax()
+    m = por_jogador.loc[melhor]
+    return {"jogador": melhor, "pontos": round(float(m.PTS), 1), "rebotes": round(float(m.REB), 1),
+            "assistencias": round(float(m.AST), 1)}
+
+
+def manchete(numero, vencedor, box_vencedor, prorrogacoes):
     destaque = box_vencedor.loc[box_vencedor.PTS.idxmax()]
     bolas_de_3 = int(destaque["3P"].split("-")[0])
     feito = f"{destaque.Jogador} scores {destaque.PTS}"
@@ -150,12 +174,6 @@ def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoe
     texto = f"{feito} as {vencedor} win Game {numero}"
     if prorrogacoes:
         texto += " in overtime" if prorrogacoes == 1 else f" in {prorrogacoes} overtimes"
-    do_vencedor = list(box_vencedor[box_vencedor.eliminado].Jogador)
-    do_perdedor = list(box_perdedor[box_perdedor.eliminado].Jogador)
-    if do_vencedor:
-        texto += f", despite {' and '.join(do_vencedor)} fouling out"
-    if do_perdedor:
-        texto += f". {perdedor} lost {' and '.join(do_perdedor)} to fouls"
     return texto
 
 
@@ -195,9 +213,9 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
         vitorias_a += pts_a > pts_b
         vitorias_b += pts_b > pts_a
         if pts_a > pts_b:
-            titulo = manchete(numero, siglas[0], siglas[1], box_a, box_b, j["prorrogacoes"])
+            titulo = manchete(numero, siglas[0], box_a, j["prorrogacoes"])
         else:
-            titulo = manchete(numero, siglas[1], siglas[0], box_b, box_a, j["prorrogacoes"])
+            titulo = manchete(numero, siglas[1], box_b, j["prorrogacoes"])
         lances = [{**l, "pts_a": l["placar_casa"] if a_em_casa else l["placar_fora"],
                    "pts_b": l["placar_fora"] if a_em_casa else l["placar_casa"]} for l in j["lances"]]
         jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
