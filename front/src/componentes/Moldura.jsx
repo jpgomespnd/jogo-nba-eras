@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { ContextoVisual, VISUAIS } from "../visual.js";
+import Logo from "./Logo.jsx";
 
 // Topo, rodapé e avisos que se repetem nas três telas.
 
@@ -20,8 +21,8 @@ export function Topo({ children }) {
   return (
     <header className="topo">
       <div className="marca">
+        <Logo />
         <span className="ao-vivo">LIVE</span>
-        <span>jogo-nba-eras</span>
       </div>
       {children}
       <SeletorVisual />
@@ -32,7 +33,11 @@ export function Topo({ children }) {
 export function Rodape({ children }) {
   return (
     <footer className="rodape">
-      {children} Unofficial project, not affiliated with the NBA.
+      <p>{children}</p>
+      <p className="rodape-marca">
+        <span className="rodape-slogan">Any team. Any era. Best of 7.</span> What If Hoops is an unofficial project, not
+        affiliated with the NBA.
+      </p>
     </footer>
   );
 }

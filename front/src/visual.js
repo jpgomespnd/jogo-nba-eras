@@ -1,20 +1,22 @@
 import { createContext } from "react";
 
-// Visual da interface: "era" veste a era escolhida; "escuro" e "claro" deixam tudo neutro.
+// Visual da interface: "claro" e "escuro" são a identidade What If Hoops; "era" veste a era escolhida.
 export const VISUAIS = [
-  ["era", "Era style"],
-  ["escuro", "Dark"],
   ["claro", "Light"],
+  ["escuro", "Dark"],
+  ["era", "Era style"],
 ];
+
+const PADRAO = "claro";
 
 const CHAVE = "jogo-nba-eras:visual";
 
 export function visualSalvo() {
   try {
     const salvo = localStorage.getItem(CHAVE);
-    return VISUAIS.some(([v]) => v === salvo) ? salvo : "era";
+    return VISUAIS.some(([v]) => v === salvo) ? salvo : PADRAO;
   } catch {
-    return "era";
+    return PADRAO;
   }
 }
 
@@ -26,4 +28,4 @@ export function salvarVisual(visual) {
   }
 }
 
-export const ContextoVisual = createContext({ visual: "era", setVisual: () => {} });
+export const ContextoVisual = createContext({ visual: PADRAO, setVisual: () => {} });

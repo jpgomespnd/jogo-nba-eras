@@ -63,12 +63,20 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
         <span className="topo-info">Series over · {rotuloDaEra(serie.era)}</span>
       </Topo>
       <main className="conteudo revelacao">
-        <header className="revelacao-cabeca">
+        <header className="cartao-resultado">
+          <p className="cartao-resultado-rotulo">Series result</p>
           <h1 className="revelacao-titulo">
-            {vencedor.nome} {vencedor.temporada} win {resultado}
+            <span className="resultado-placar placar-numero">{resultado.replace("-", "–")}</span>
+            <span className="resultado-linha">
+              {vencedor.nome} {vencedor.temporada} over {perdedor.nome} {perdedor.temporada}
+            </span>
           </h1>
           <p className="revelacao-sub">
-            Against the {perdedor.nome} {perdedor.temporada}, in {jogos.length} games under {rotuloDaEra(serie.era)} conditions.
+            {jogos.length} games under <span className="era-rotulo">{rotuloDaEra(serie.era)}</span> conditions.
+          </p>
+          <p className="cartao-resultado-assinatura">
+            <span>What If Hoops</span>
+            <span>One simulated series</span>
           </p>
         </header>
 

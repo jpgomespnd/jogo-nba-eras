@@ -9,6 +9,17 @@ import { rotuloDaEra } from "../formato.js";
 
 const PAUSA_DO_AUTOMATICO = 2200;
 
+// Quatro pontos por time: os cheios são as vitórias na série.
+function Pontos({ lado, vitorias }) {
+  return (
+    <span className={`pontos lado-${lado}`} aria-hidden="true">
+      {[0, 1, 2, 3].map((i) => (
+        <span key={i} className={i < vitorias ? "cheio" : undefined} />
+      ))}
+    </span>
+  );
+}
+
 export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }) {
   const [serie, setSerie] = useState(null);
   const [erro, setErro] = useState(null);
@@ -122,9 +133,11 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
       <main className="conteudo serie">
         <div className="placar-serie" aria-live="polite">
           <span className="placar-serie-time lado-a">{a.sigla}</span>
+          <Pontos lado="a" vitorias={vitorias.a} />
           <span className="placar-numero placar-serie-numero">
             {vitorias.a}-{vitorias.b}
           </span>
+          <Pontos lado="b" vitorias={vitorias.b} />
           <span className="placar-serie-time lado-b">{b.sigla}</span>
           <span className="placar-serie-situacao">{situacao}</span>
         </div>

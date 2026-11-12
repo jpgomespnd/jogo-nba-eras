@@ -102,6 +102,24 @@ code {
   font-size: 0.85em;
 }
 
+/* Rótulos e dados pequenos: JetBrains Mono na identidade da marca, a fonte do texto nas eras. */
+.rotulo,
+.topo-info,
+.seletor-visual,
+.carta-controles label,
+.mini-numero,
+.cartao-topo,
+.placar-final,
+.lance-relogio,
+.barra-valor,
+.rodape,
+.cartao-resultado-rotulo,
+.cartao-resultado-assinatura,
+.versus small,
+.titulo-secao-mono {
+  font-family: var(--fonte-dado, var(--fonte-texto));
+}
+
 .placar-numero {
   font-family: var(--fonte-numero);
   font-size: calc(1em * var(--numero-escala));
@@ -141,6 +159,36 @@ code {
   align-items: center;
   gap: 12px;
   font-size: 1.3rem;
+}
+
+/* Logo: o "?" com a bola no lugar do ponto, e o nome empilhado. */
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--texto);
+}
+
+.logo-simbolo {
+  width: 24px;
+  height: 39px;
+  flex: none;
+}
+
+.logo-palavras {
+  display: flex;
+  flex-direction: column;
+  font-family: "Big Shoulders Display", sans-serif;
+  font-weight: 900;
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  font-size: 1.35rem;
+  line-height: 0.82;
+}
+
+.logo-hoops {
+  color: #ff5a1f;
 }
 
 .topo-info {
@@ -190,10 +238,43 @@ code {
 }
 
 .rodape {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 24px;
   padding: 14px 40px;
   border-top: 1px solid var(--borda);
   color: var(--texto-suave);
-  font-size: 0.85em;
+  font-size: 0.8em;
+}
+
+.rodape-slogan {
+  color: var(--texto);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Chamada da tela de escolha */
+.chamada {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chamada-titulo {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--titulo-peso);
+  font-style: var(--titulo-estilo);
+  text-transform: var(--titulo-caixa);
+  letter-spacing: var(--titulo-espaco);
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  line-height: 0.92;
+  text-wrap: balance;
+}
+
+.chamada-sub {
+  color: var(--texto-suave);
+  max-width: 60ch;
 }
 
 .aviso {
@@ -283,10 +364,25 @@ code {
 
 .versus {
   align-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   font-family: var(--fonte-titulo);
   font-style: var(--titulo-estilo);
+  font-weight: var(--titulo-peso);
+  text-transform: uppercase;
   font-size: 2.5rem;
+  line-height: 1;
   color: var(--texto-suave);
+}
+
+.versus small {
+  font-size: 0.7rem;
+  font-weight: 500;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 
 .carta-time {
@@ -529,6 +625,22 @@ select {
 .placar-serie-numero {
   font-size: calc(2.8rem * var(--numero-escala));
   line-height: 1;
+}
+
+.pontos {
+  display: flex;
+  gap: 4px;
+}
+
+.pontos span {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--cor);
+  border-radius: 50%;
+}
+
+.pontos .cheio {
+  background: var(--cor);
 }
 
 .placar-serie-situacao {
@@ -959,15 +1071,58 @@ button.mini:hover {
   margin-top: 20px;
 }
 
-/* Revelação */
+/* Revelação: o cartão do resultado da série, em laranja na marca e na cor de destaque nas eras. */
+.cartao-resultado {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+  padding: 24px 28px 20px;
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  border-radius: var(--raio);
+  box-shadow: var(--relevo);
+}
+
+.cartao-resultado-rotulo,
+.cartao-resultado-assinatura {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .revelacao-titulo {
-  font-size: clamp(2rem, 5vw, 3.8rem);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   text-wrap: balance;
 }
 
+.cartao-resultado .resultado-placar {
+  font-size: calc(clamp(5rem, 16vw, 10rem) * var(--numero-escala));
+  line-height: 0.85;
+  color: inherit;
+  text-shadow: none;
+}
+
+.resultado-linha {
+  font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+  line-height: 1;
+}
+
 .revelacao-sub {
+  font-weight: 500;
+}
+
+.cartao-resultado-assinatura {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
   margin-top: 8px;
-  color: var(--texto-suave);
+  padding-top: 10px;
+  border-top: 2px solid currentColor;
 }
 
 .mvp {
@@ -1253,6 +1408,11 @@ button.mini:hover {
 }
 
 @media (max-width: 520px) {
+  /* O jogo de eliminação já aparece no cartão do jogo; no mini-cartão não cabe. */
+  .mini-decisivo {
+    display: none;
+  }
+
   .topo-info {
     order: 3;
     flex-basis: 100%;

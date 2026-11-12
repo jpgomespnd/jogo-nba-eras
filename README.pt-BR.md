@@ -40,7 +40,7 @@ flowchart LR
 4. **Simulador** (`simulador.py`): Monte Carlo posse a posse, vetorizado com numpy. Cada probabilidade da posse é a média da era + o desvio do ataque + o desvio da defesa adversária. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
 5. **Eras** (`eras.py`, `confronto.py`): ambiente médio de cada década. O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
 6. **Jogadores** (`elenco.py`, `jogo_detalhado.py`): rotação "saudável" de cada time e um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance: box score, relógio, narração e eliminações por faltas. Os minutos seguem os playoffs reais.
-7. **API** (`api.py`, FastAPI) e **front** (`front/`, React + Vite): escolha dos times, da era e do mando; a série jogo a jogo, com final narrado lance a lance; e a revelação das chances no fim. A interface veste a era escolhida. O site é em inglês; código e comentários, em português.
+7. **API** (`api.py`, FastAPI) e **front** (`front/`, React + Vite): escolha dos times, da era e do mando; a série jogo a jogo, com final narrado lance a lance; e a revelação das chances no fim. O site se chama **What If Hoops**, com a identidade visual própria (osso, tinta e laranja bola) em versão clara e escura, e a opção de vestir a interface com a era escolhida. O site é em inglês; código e comentários, em português.
 
 | Endereço | O que devolve |
 |---|---|

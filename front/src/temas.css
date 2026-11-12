@@ -1,5 +1,5 @@
-/* Cada era veste a interface: cores, fontes e cantos mudam com data-era no <html>.
-   "escuro" e "claro" são os visuais sem temática, para quem prefere a interface neutra. */
+/* Cada visual veste a interface: cores, fontes e cantos mudam com data-era no <html>.
+   "claro" e "escuro" são a identidade What If Hoops; "90", "2000", "2010" e "2020" vestem a era escolhida. */
 
 :root,
 [data-era="90"] {
@@ -127,63 +127,220 @@
   --relevo: none;
 }
 
-/* Sem temática: a mesma interface, neutra, em Inter. */
-[data-era="escuro"],
-[data-era="claro"] {
+/* Identidade What If Hoops: osso, tinta e laranja bola, em versão clara e escura.
+   Big Shoulders Display nos títulos e placares, Archivo no texto e JetBrains Mono nos dados e rótulos. */
+[data-era="claro"],
+[data-era="escuro"] {
   --fundo-imagem: none;
-  --raio: 8px;
-  --fonte-titulo: "Inter", sans-serif;
-  --fonte-texto: "Inter", sans-serif;
-  --fonte-numero: "Inter", sans-serif;
-  --titulo-caixa: none;
-  --titulo-peso: 700;
+  --raio: 0;
+  --fonte-titulo: "Big Shoulders Display", sans-serif;
+  --fonte-texto: "Archivo", sans-serif;
+  --fonte-numero: "Big Shoulders Display", sans-serif;
+  --fonte-dado: "JetBrains Mono", monospace;
+  --titulo-caixa: uppercase;
+  --titulo-peso: 800;
   --titulo-estilo: normal;
-  --titulo-espaco: -0.01em;
-  --texto-tamanho: 15px;
+  --titulo-espaco: 0;
+  --texto-tamanho: 16px;
   --numero-escala: 1;
   --brilho-numero: none;
   --relevo: none;
-}
-
-[data-era="escuro"] {
-  --esquema: dark;
-  --fundo: #131519;
-  --painel: #1b1e23;
-  --painel-2: #23272d;
-  --borda: #30353d;
-  --texto: #eceef1;
-  --texto-suave: #a0a8b4;
-  --destaque: #5b9bff;
-  --sobre-destaque: #0b1426;
-  --alerta: #ff7a85;
-  --estrela: #f5c451;
-  --cor-a: #5b9bff;
-  --cor-b: #ff9152;
-  --sobre-a: #0b1426;
-  --sobre-b: #2a1205;
+  --laranja: #ff5a1f;
+  --tinta: #0b0b0b;
+  --osso: #f1ede4;
+  --destaque: var(--laranja);
+  --sobre-destaque: var(--tinta);
+  --estrela: var(--laranja);
+  --cor-a: var(--laranja);
+  --sobre-a: var(--tinta);
 }
 
 [data-era="claro"] {
   --esquema: light;
-  --fundo: #f4f5f7;
-  --painel: #fff;
-  --painel-2: #f0f2f5;
-  --borda: #d8dce2;
-  --texto: #16191d;
-  --texto-suave: #535c69;
-  --destaque: #1f5fc4;
-  --sobre-destaque: #fff;
-  --alerta: #b3172b;
-  --estrela: #9a6b00;
-  --cor-a: #1f5fc4;
-  --cor-b: #d4621a;
-  --sobre-a: #fff;
-  --sobre-b: #fff;
+  --fundo: var(--osso);
+  --painel: #f7f4ee;
+  --painel-2: #e6e2d8;
+  --borda: #c9c4b8;
+  --forte: var(--tinta);
+  --texto: var(--tinta);
+  --texto-suave: #5f5b52;
+  --alerta: #c2410c;
+  --cor-b: var(--tinta);
+  --sobre-b: var(--osso);
 }
 
-[data-era="escuro"] .placar-numero,
-[data-era="claro"] .placar-numero {
-  font-weight: 700;
+[data-era="escuro"] {
+  --esquema: dark;
+  --fundo: var(--tinta);
+  --painel: #151513;
+  --painel-2: #1f1e1b;
+  --borda: #3a3833;
+  --forte: var(--osso);
+  --texto: var(--osso);
+  --texto-suave: #aaa59a;
+  --alerta: #ff7a45;
+  --cor-b: var(--osso);
+  --sobre-b: var(--tinta);
+}
+
+/* Contornos fortes de tinta, cantos retos e rótulos em mono, como nas peças da marca. */
+:is([data-era="claro"], [data-era="escuro"]) {
+  & .placar-numero {
+    font-weight: 800;
+  }
+
+  & :is(.topo, .rodape) {
+    background: var(--fundo);
+    border-color: var(--forte);
+    border-width: 2px;
+  }
+
+  & :is(.carta-time, .cartao-jogo, .painel, .aviso, .dialogo) {
+    border: 2px solid var(--forte);
+  }
+
+  & .carta-time {
+    border-top: 2px solid var(--forte);
+    box-shadow: inset 0 6px 0 var(--cor);
+  }
+
+  & :is(.botao, .mando-opcao, .era, select) {
+    border: 2px solid var(--forte);
+  }
+
+  & .botao {
+    font-family: var(--fonte-titulo);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 1.05rem;
+  }
+
+  & .botao:hover:not(:disabled) {
+    background: var(--forte);
+    border-color: var(--forte);
+    color: var(--fundo);
+  }
+
+  & .botao-principal {
+    font-size: 1.25rem;
+  }
+
+  & .botao-principal:hover:not(:disabled) {
+    background: var(--forte);
+    color: var(--laranja);
+  }
+
+  & .era[aria-checked="true"] {
+    border-color: var(--forte);
+    box-shadow: inset 0 6px 0 var(--laranja);
+  }
+
+  & .mando-opcao:has(:checked) {
+    background: var(--forte);
+    color: var(--fundo);
+  }
+
+  & .versus span {
+    color: var(--laranja);
+  }
+
+  & .selos li {
+    background: transparent;
+    border: 1.5px solid var(--forte);
+  }
+
+  & .selos .selo-vazio {
+    border-color: var(--borda);
+  }
+
+  /* Faixa dos jogos: blocos cheios na cor de quem venceu. */
+  & .mini {
+    border: 2px solid var(--forte);
+  }
+
+  & .mini:is(.venceu-a, .venceu-b) {
+    background: var(--cor);
+    color: var(--sobre);
+  }
+
+  & .mini:is(.venceu-a, .venceu-b) .mini-numero {
+    color: inherit;
+    opacity: 0.8;
+  }
+
+  & button.mini:hover {
+    border-color: var(--forte);
+    filter: brightness(1.1);
+  }
+
+  & .mini[aria-current="true"] {
+    outline: 3px solid var(--forte);
+    outline-offset: 2px;
+  }
+
+  & .mini-vazio {
+    border: 2px dashed var(--borda);
+  }
+
+  & .mini-ao-vivo {
+    border-color: var(--laranja);
+    border-style: solid;
+  }
+
+  & .selo-decisivo,
+  & .zebra .zebrometro-veredito {
+    background: var(--laranja);
+    color: var(--tinta);
+  }
+
+  & .logica .zebrometro-veredito {
+    background: var(--forte);
+    color: var(--fundo);
+  }
+
+  & .medidor {
+    border: 2px solid var(--forte);
+    font-family: var(--fonte-dado);
+  }
+
+  & .velocidades,
+  & .seletor-visual {
+    border: 2px solid var(--forte);
+  }
+
+  & .seletor-visual button[aria-checked="true"] {
+    background: var(--forte);
+    color: var(--fundo);
+    box-shadow: none;
+  }
+
+  & .velocidades button[aria-checked="true"] {
+    background: var(--laranja);
+    color: var(--tinta);
+  }
+
+  & .destaques {
+    background: transparent;
+    border-left: 4px solid var(--laranja);
+  }
+
+  & :is(.box-tabela, .lideres-serie, .estilos) :is(td, thead th) {
+    font-family: var(--fonte-dado);
+    font-size: 0.92em;
+  }
+
+  & :is(.box-tabela, .lideres-serie) caption {
+    font-size: 1.15rem;
+  }
+
+  & .dialogo::backdrop {
+    background: rgb(11 11 11 / 0.7);
+  }
+
+  & .cartao-resultado {
+    border: 2px solid var(--tinta);
+  }
 }
 
 /* Anos 90: linhas de tubo de TV por cima de tudo e o selo AO VIVO. */

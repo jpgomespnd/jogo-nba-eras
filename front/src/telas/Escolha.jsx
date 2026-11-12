@@ -111,10 +111,16 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
         <span className="topo-info">Best-of-7 series across eras</span>
       </Topo>
       <main className="conteudo escolha">
+        <header className="chamada">
+          <h1 className="chamada-titulo">The series that never happened.</h1>
+          <p className="chamada-sub">Pick any two teams since {temporadas.at(-1)}, pick the era the series is played in, and settle it.</p>
+        </header>
+
         <div className="duelo">
           {cartas[0]}
           <div className="versus" aria-hidden="true">
-            vs
+            <span>vs</span>
+            <small>Best of 7</small>
           </div>
           {cartas[1]}
         </div>

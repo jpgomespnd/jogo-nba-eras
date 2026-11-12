@@ -36,7 +36,7 @@ export default function MiniCartoes({ serie, revelados, atual, aoVivo, aoEscolhe
             >
               <span className="mini-numero">
                 Game {i + 1}
-                {jogo.decisivo && " · elimination"}
+                {jogo.decisivo && <span className="mini-decisivo"> · elimination</span>}
               </span>
               <span className="mini-placar placar-numero">
                 {venceuA ? a.sigla : b.sigla} {Math.max(jogo.pts_a, jogo.pts_b)}-{Math.min(jogo.pts_a, jogo.pts_b)}

@@ -42,7 +42,7 @@ The code and comments are in Portuguese; the website is in English.
 4. **Simulator** (`simulador.py`): possession-by-possession Monte Carlo, vectorized with numpy. Each possession probability is the era average + the offense's deviation + the opposing defense's deviation. A team that builds a bigger lead than expected eases off, which makes the spread of scores match real games (~13 points).
 5. **Eras** (`eras.py`, `confronto.py`): the average environment of each decade. A team carries its relative standing (z-score) into the new era, which predicted real changes in the league better than keeping the absolute difference.
 6. **Players** (`elenco.py`, `jogo_detalhado.py`): each team's "healthy" rotation and a possession-by-possession game with the same probabilities as the simulator, deciding who made each play: box score, game clock, play-by-play and foul-outs. Minutes follow real playoff rotations.
-7. **API** (`api.py`, FastAPI) and **front end** (`front/`, React + Vite): pick the teams, the era and home court; watch the series game by game, with a play-by-play finish in close games; see the odds only when it's over. The interface dresses up as the chosen era.
+7. **API** (`api.py`, FastAPI) and **front end** (`front/`, React + Vite): pick the teams, the era and home court; watch the series game by game, with a play-by-play finish in close games; see the odds only when it's over. The site is called **What If Hoops**, in light and dark versions of its own identity (bone, ink and basketball orange), with an option to dress the interface up as the chosen era instead.
 
 | Endpoint | Returns |
 |---|---|
