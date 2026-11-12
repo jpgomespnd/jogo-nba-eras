@@ -40,6 +40,8 @@ def test_serie_termina_quando_alguem_faz_4(cliente):
     ultimo = jogos[-1]
     assert max(ultimo["vitorias_a"], ultimo["vitorias_b"]) == 4
     assert serie["vencedor"] == ("a" if ultimo["vitorias_a"] == 4 else "b")
+    box_do_campeao = ultimo["box_a"] if serie["vencedor"] == "a" else ultimo["box_b"]
+    assert serie["mvp"]["jogador"] in {j["Jogador"] for j in box_do_campeao}
 
 
 def test_box_score_soma_o_placar(cliente):

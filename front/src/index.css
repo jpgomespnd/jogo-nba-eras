@@ -970,6 +970,37 @@ button.mini:hover {
   color: var(--texto-suave);
 }
 
+.mvp {
+  border-left: 6px solid var(--cor);
+}
+
+.mvp-nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--titulo-peso);
+  font-style: var(--titulo-estilo);
+  text-transform: var(--titulo-caixa);
+  letter-spacing: var(--titulo-espaco);
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  line-height: 1.1;
+}
+
+.mvp-sigla {
+  color: var(--texto-suave);
+  font-size: 0.6em;
+}
+
+.mvp-numeros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 20px;
+  margin-top: 8px;
+}
+
+.mvp-numeros b {
+  font-size: 1.4rem;
+}
+
 .zebrometro {
   display: flex;
   flex-direction: column;

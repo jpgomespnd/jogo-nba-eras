@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from banco import conectar
-from confronto import carregar_elenco, estilo_na_era, narrar_serie, preparar, simular_confronto
+from confronto import carregar_elenco, estilo_na_era, mvp_da_serie, narrar_serie, preparar, simular_confronto
 from elenco import CONSULTA_JOGADORES, rotacao
 from eras import DESCRICOES_EN, ERAS, ROTULOS_EN, ambiente, carregar
 
@@ -198,11 +198,12 @@ def serie(pedido: PedidoSerie):
     a, b, (sigla_a, sigla_b) = preparar_confronto(pedido)
     elencos = (elenco(pedido.temporada_a, pedido.time_a), elenco(pedido.temporada_b, pedido.time_b))
     jogos = narrar_serie(DADOS, a, b, pedido.era, elencos, pedido.mando, (sigla_a, sigla_b), seed=pedido.semente)
-    ultimo = jogos[-1]
+    a_venceu = jogos[-1]["vitorias_a"] == 4
     return nativo({
         "time_a": resumo_do_time(a, sigla_a), "time_b": resumo_do_time(b, sigla_b),
         "era": pedido.era, "mando": pedido.mando, "semente": pedido.semente,
-        "vencedor": "a" if ultimo["vitorias_a"] == 4 else "b",
+        "vencedor": "a" if a_venceu else "b",
+        "mvp": mvp_da_serie(jogos, a_venceu),
         "jogos": [jogo_para_json(j) for j in jogos],
     })
 

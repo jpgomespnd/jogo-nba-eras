@@ -1,10 +1,58 @@
 # jogo-nba-eras
 
-Simulador de séries melhor de 7 entre times de temporadas diferentes da NBA (1990-91 em diante), jogadas no ambiente de uma era escolhida.
+[![CI](https://github.com/jpgomespnd/jogo-nba-eras/actions/workflows/ci.yml/badge.svg)](https://github.com/jpgomespnd/jogo-nba-eras/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Cada time é descrito pelos quatro fatores de Dean Oliver (eFG%, desperdícios, rebote ofensivo, lances livres), no ataque e na defesa, relativos à média da liga da sua temporada.
+**English** | [Português](README.pt-BR.md)
 
-## Como rodar
+A best-of-7 series simulator between NBA teams from different seasons (1990-91 onward), played under the conditions of an era you pick: the 2009-10 Lakers vs the 2016-17 Warriors in the 1990s, for example.
+
+| Validation | Result |
+|---|---|
+| Real playoff series (1990-91 to 2025-26), predicted from regular-season data only | **75.7% correct** over 540 series (the team with home court wins 73.9%) |
+| Calibration of the odds | **Brier score 0.167** (a coin flip scores 0.250) |
+| Simulated vs real player production per 36 minutes | correlation of **0.93 to 0.96** |
+
+![Picking the teams and the era](docs/img/escolha.png)
+
+| The series, game by game | The odds, revealed at the end |
+|---|---|
+| ![Series](docs/img/serie.png) | ![Reveal](docs/img/revelacao.png) |
+
+## Architecture
+
+```mermaid
+flowchart LR
+    nba["nba_api"] --> coleta["Data collection<br/>coletar_jogos.py<br/>coletar_jogadores.py"]
+    coleta --> banco[("SQLite<br/>data/nba_eras.db")]
+    banco <--> estat["Statistics<br/>quatro_fatores.py<br/>forca.py"]
+    banco --> sim["Simulator<br/>simulador.py · eras.py<br/>jogo_detalhado.py · confronto.py"]
+    sim --> api["FastAPI<br/>api.py"]
+    api --> front["React + Vite<br/>front/"]
+    sim --> st["Streamlit prototype<br/>app.py"]
+```
+
+The code and comments are in Portuguese; the website is in English.
+
+## How it works
+
+1. **Data collection** (`coletar_jogos.py`, `coletar_jogadores.py`): team and player box scores for every regular-season and playoff game, via [`nba_api`](https://github.com/swar/nba_api).
+2. **Four factors** (`quatro_fatores.py`): pace, efficiency and Dean Oliver's four factors (eFG%, turnovers, offensive rebounding, free throws) for every team-season, on offense and defense, stored as the league average plus each team's deviation from it; home-court advantage for each season.
+3. **Effective strength** (`forca.py`): schedule-adjusted point differential, differential against good teams, win percentage and series won in the two previous seasons, weighted by a regression on playoff games. Whatever the four factors miss enters the simulator as a bonus, together with fatigue.
+4. **Simulator** (`simulador.py`): possession-by-possession Monte Carlo, vectorized with numpy. Each possession probability is the era average + the offense's deviation + the opposing defense's deviation. A team that builds a bigger lead than expected eases off, which makes the spread of scores match real games (~13 points).
+5. **Eras** (`eras.py`, `confronto.py`): the average environment of each decade. A team carries its relative standing (z-score) into the new era, which predicted real changes in the league better than keeping the absolute difference.
+6. **Players** (`elenco.py`, `jogo_detalhado.py`): each team's "healthy" rotation and a possession-by-possession game with the same probabilities as the simulator, deciding who made each play: box score, game clock, play-by-play and foul-outs. Minutes follow real playoff rotations.
+7. **API** (`api.py`, FastAPI) and **front end** (`front/`, React + Vite): pick the teams, the era and home court; watch the series game by game, with a play-by-play finish in close games; see the odds only when it's over. The interface dresses up as the chosen era.
+
+| Endpoint | Returns |
+|---|---|
+| `GET /temporadas` | The 36 seasons |
+| `GET /times?temporada=2016-17` | Teams of a season: record, differential, strength, style tags and top scorers |
+| `GET /eras` | Eras with description, pace, three-point volume and points per shot |
+| `POST /serie` | A series game by game: scores, box scores, plays, headlines, leaders, standout performances and the series MVP (no odds) |
+| `POST /revelar` | Each team's odds, the 4-0 to 4-3 distribution and each team's style in the era |
+
+## Running it
 
 ```powershell
 py -3.12 -m venv .venv
@@ -15,23 +63,12 @@ cd scripts
 ..\.venv\Scripts\python quatro_fatores.py
 ..\.venv\Scripts\python forca.py
 cd ..
-.venv\Scripts\streamlit run scripts\app.py
-```
-
-No Windows, deixe o projeto num caminho curto (ex.: `C:\projetos\jogo-nba-eras`): o Streamlit tem arquivos internos com nomes longos e a instalação falha se o caminho completo passar de 260 caracteres, a menos que o suporte a caminhos longos esteja ativado.
-
-A coleta leva cerca de 15 minutos. Conferências e validações (opcionais): `conferir_jogadores.py`, `validar_playoffs.py`, `validar_jogadores.py`, `testes_eras.py`. Pela linha de comando: `confronto.py 2009-10 LAL 2016-17 GSW "anos 90"`.
-
-API (com o banco já montado), a partir da raiz do projeto:
-
-```powershell
 .venv\Scripts\uvicorn --app-dir scripts api:app --reload
-.venv\Scripts\python -m pytest tests
 ```
 
-Documentação interativa em http://localhost:8000/docs.
+Data collection takes about 15 minutes. Interactive API docs at http://localhost:8000/docs.
 
-Front em React (Node.js 20 ou mais novo), com a API ligada, em outro terminal:
+Front end (Node.js 20 or newer), with the API running, in another terminal:
 
 ```powershell
 cd front
@@ -39,46 +76,35 @@ npm install
 npm run dev
 ```
 
-Abre em http://localhost:5173. Para apontar para outra API, defina `VITE_API_URL`.
+Opens at http://localhost:5173. Set `VITE_API_URL` to point it at another API. Streamlit prototype: `.venv\Scripts\streamlit run scripts\app.py`.
 
-## Como funciona
+On Windows, keep the project in a short path (e.g. `C:\projects\jogo-nba-eras`): Streamlit ships files with long names and installation fails if the full path exceeds 260 characters, unless long path support is enabled.
 
-1. **Coleta** (`coletar_jogos.py`, `coletar_jogadores.py`): box score de cada time e de cada jogador em cada jogo, temporada regular e playoffs, via [`nba_api`](https://github.com/swar/nba_api).
-2. **Quatro fatores** (`quatro_fatores.py`): ritmo, eficiência e quatro fatores de cada time-temporada, com a média da liga e o desvio de cada time em relação a ela; vantagem de mando de cada temporada.
-3. **Força efetiva** (`forca.py`): saldo ajustado pelos adversários, saldo contra times bons, aproveitamento e séries vencidas nas duas temporadas anteriores, com pesos aprendidos numa regressão dos jogos de playoff. O que os quatro fatores não captam entra no simulador como bônus, junto com o desgaste (jogos de playoff antes da série).
-4. **Simulador** (`simulador.py`): jogos posse a posse e séries (2-2-1-1-1, 2-3-2 ou 2-2-1) com mando de quadra. Cada probabilidade da posse é a média da era + o desvio do ataque + o desvio da defesa adversária. Quem abre vantagem além do esperado relaxa, o que deixa o espalhamento dos placares igual ao real (~13 pontos).
-5. **Eras** (`eras.py`, `confronto.py`): ambiente médio de cada década (ou de uma temporada). O time leva para a outra era a sua posição relativa entre os times (escore z), que previu melhor as mudanças reais de ambiente do que manter a diferença absoluta.
-6. **Jogadores** (`elenco.py`, `jogo_detalhado.py`): rotação "saudável" de cada time (quem terminou a temporada nele) e um jogo posse a posse com as mesmas probabilidades do simulador, decidindo quem fez cada lance: box score, relógio, narração e eliminações por faltas. Os minutos seguem os playoffs reais: o 1º da rotação joga 7% a mais que na temporada e 10% a mais em jogo decisivo; o 10º, 28% a menos.
-7. **App** (`app.py`, Streamlit): escolha os times, a era e o mando e assista à série jogo a jogo, com mini-cartões, líderes, box score e atuações de destaque (40 pontos, triplo-duplo, 20-20, 15 assistências, 7 bolas de 3, 5 tocos, 6 roubos, quem decidiu no último minuto). Em jogo apertado, um pop-up oferece acompanhar o final lance a lance. As chances só aparecem quando a série termina.
-8. **API** (`api.py`, FastAPI): o mesmo simulador servido para o front em React.
-9. **Front** (`front/`, React + Vite): escolha dos times, da era e do mando; a série jogo a jogo, com final narrado lance a lance; e a revelação das chances no fim. A interface veste a era escolhida (TV dos anos 90, metal dos 2000, faixas diagonais dos 2010, escuro dos 2020) ou fica neutra, no modo escuro ou claro. O site é em inglês, pensando no público americano; código e documentação seguem em português.
+## Tests and CI
 
-| Endereço | O que devolve |
-|---|---|
-| `GET /temporadas` | As 36 temporadas |
-| `GET /times?temporada=2016-17` | Times da temporada: campanha, saldo, força, selos de estilo e cestinhas |
-| `GET /eras` | As eras com descrição, ritmo, volume de 3 e pontos por arremesso |
-| `POST /serie` | Uma série jogo a jogo: placares, box scores, lances, manchetes, líderes e destaques (sem as chances) |
-| `POST /revelar` | Chances de cada time, distribuição de 4-0 a 4-3 e o estilo de cada um na era |
+```powershell
+.venv\Scripts\python -m pytest tests
+```
 
-Os testes (`tests/test_api.py`) conferem, entre outras coisas, que o box score soma o placar, que a mesma semente repete a série e que pedidos inválidos são recusados.
+- `tests/test_simulador.py`: simulator properties on fabricated data, no database needed: a team against itself wins ~50%, the order of the teams doesn't matter, home court helps, the box score adds up to the final score, a series ends at 4 wins, translating a team to its own season changes nothing.
+- `tests/test_api.py` and `tests/test_eras_banco.py`: the API and era consistency with real teams. They need the database and are skipped without it.
 
-## Validação
+[GitHub Actions](.github/workflows/ci.yml) runs on every push and pull request: tests, front-end lint and build, and `pip-audit` and `npm audit` for known vulnerabilities. The database (~140 MB) is not on GitHub, so only the tests that don't depend on it run there. Dependabot proposes updates for pip, npm and GitHub Actions.
 
-- **Playoffs reais** (`validar_playoffs.py`): 540 séries de 1990-91 a 2025-26, previstas só com a temporada regular e pesos aprendidos sem a temporada prevista. 75,7% de acerto e Brier 0,167; o time com mando vence 73,9%.
-- **Jogadores** (`validar_jogadores.py`): pontos, rebotes e assistências por 36 minutos simulados x reais com correlação de 0,93 a 0,96.
-- **Eras** (`testes_eras.py`): não existe gabarito entre épocas; os testes checam que um time contra ele mesmo dá 50%, que a ordem dos times não importa, que o ranking quase não muda entre eras e que o garrafão vale mais nos anos 90 do que em 2020.
+Full validations, with the database: `validar_playoffs.py`, `validar_jogadores.py`, `conferir_jogadores.py` and `testes_eras.py` (which also lists the 10 strongest teams in each era). From the command line: `confronto.py 2009-10 LAL 2016-17 GSW "anos 90"`.
 
-Não capta lesões, experiência individual em playoffs nem ajustes de técnico.
+## Data
 
-## Dados
+`data/nba_eras.db` (SQLite, not in Git; schema in `sql/schema.sql`):
 
-`data/nba_eras.db` (SQLite, fora do Git; esquema em `sql/schema.sql`):
+- `games`, `team_games`: team box score for every game.
+- `player_games`: player box scores (~930k rows). From 1990-91 to 1995-96 a few players are missing in ~4% of games (under 1% of points) and there is no +/-.
+- `vw_confrontos`: each team in a game with the opponent's stats alongside.
+- `fatores_time`, `liga`: four factors per team-season (`liga_*` = league average, `rel_*` = deviation) and season averages, including home-court advantage.
+- `forca_time`, `pesos_forca`: effective strength and bonus per team; weights for strength, playoff home court and fatigue.
 
-- `games`, `team_games`: box score de time de cada jogo.
-- `player_games`: box score de cada jogador (~930 mil linhas). Entre 1990-91 e 1995-96 faltam alguns jogadores em ~4% dos jogos (menos de 1% dos pontos) e não existe +/-.
-- `vw_confrontos`: cada time num jogo com as estatísticas do adversário ao lado.
-- `fatores_time`, `liga`: quatro fatores por time-temporada (`liga_*` = média da liga, `rel_*` = desvio) e médias de cada temporada, com a vantagem de mando.
-- `forca_time`, `pesos_forca`: força efetiva e bônus de cada time; pesos da força, do mando nos playoffs e do desgaste.
+## Limitations
 
-Projeto não oficial, sem vínculo com a NBA.
+It doesn't model injuries (on purpose: it's each team at its best), coaching adjustments or individual playoff experience. Team strength comes from team numbers; players only decide who made each play.
+
+Unofficial project, not affiliated with the NBA. [MIT](LICENSE) license.

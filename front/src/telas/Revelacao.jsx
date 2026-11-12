@@ -72,6 +72,21 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
           </p>
         </header>
 
+        {serie.mvp && (
+          <section className={`painel mvp lado-${lado}`} aria-label="Series MVP">
+            <p className="titulo-secao">Series MVP</p>
+            <p className="mvp-nome">
+              {serie.mvp.jogador} <span className="mvp-sigla">{vencedor.sigla}</span>
+            </p>
+            <p className="mvp-numeros">
+              <span><b className="placar-numero">{numero(serie.mvp.pontos, 1)}</b> PTS</span>
+              <span><b className="placar-numero">{numero(serie.mvp.rebotes, 1)}</b> REB</span>
+              <span><b className="placar-numero">{numero(serie.mvp.assistencias, 1)}</b> AST</span>
+              <span className="rotulo">per game</span>
+            </p>
+          </section>
+        )}
+
         {!chances ? (
           <Aviso erro={erro} aoTentar={() => {
             setErro(null);
