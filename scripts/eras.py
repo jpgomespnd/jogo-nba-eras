@@ -18,6 +18,14 @@ DESCRICOES = {
     "anos 2010": "Spacing e a revolução da bola de 3, com quase 30% dos arremessos de longe no fim da década.",
     "anos 2020": "Ritmo alto e 40% dos arremessos de 3. Arremesso de 2 e de 3 valem o mesmo: cerca de 1,08 ponto.",
 }
+# Textos do site, em inglês (o protótipo em Streamlit usa DESCRICOES).
+ROTULOS_EN = {"anos 90": "1990s", "anos 2000": "2000s", "anos 2010": "2010s", "anos 2020": "2020s"}
+DESCRICOES_EN = {
+    "anos 90": "Slow, physical and hand-checking. Few threes: a 2-point shot was worth 0.96 points and a 3 was worth 1.03, so teams that let it fly exploited an edge the league ignored.",
+    "anos 2000": "The slowest pace in history and suffocating defenses. Hand-checking ends in 2004 and three-point volume starts to climb.",
+    "anos 2010": "Spacing and the three-point revolution, with almost 30% of shots from deep by the end of the decade.",
+    "anos 2020": "High pace and 40% of shots from three. A two and a three are worth the same: about 1.08 points per shot.",
+}
 METRICAS = [
     "pace", "tov_pct", "opp_tov_pct", "fta_rate", "opp_fta_rate", "fg3a_rate", "opp_fg3a_rate",
     "fg2_pct", "opp_fg2_pct", "fg3_pct", "opp_fg3_pct", "ft_pct", "orb_pct", "drb_pct",

@@ -17,26 +17,26 @@ from pydantic import BaseModel, Field
 from banco import conectar
 from confronto import carregar_elenco, estilo_na_era, narrar_serie, preparar, simular_confronto
 from elenco import CONSULTA_JOGADORES, rotacao
-from eras import DESCRICOES, ERAS, ambiente, carregar
+from eras import DESCRICOES_EN, ERAS, ROTULOS_EN, ambiente, carregar
 
 SIMULACOES = 10000
 # Endereço do front em desenvolvimento (Vite); só ele pode chamar a API pelo navegador.
 ORIGENS_DO_FRONT = ["http://localhost:5173", "http://127.0.0.1:5173"]
 # Selos de estilo: coluna, sentido (+1 = acima da média é bom) e texto. Entram os desvios de 1 espalhamento ou mais.
 SELOS = [
-    ("rel_ortg", 1, "Ataque de elite"),
-    ("rel_drtg", -1, "Defesa de elite"),
-    ("rel_fg3a_rate", 1, "Bombardeiro de 3"),
-    ("rel_fg3_pct", 1, "Mão calibrada de 3"),
-    ("rel_orb_pct", 1, "Dono do rebote ofensivo"),
-    ("rel_drb_pct", 1, "Fecha o rebote defensivo"),
-    ("rel_pace", 1, "Ritmo acelerado"),
-    ("rel_pace", -1, "Ritmo cadenciado"),
-    ("rel_tov_pct", -1, "Cuida da bola"),
-    ("rel_opp_tov_pct", 1, "Defesa que rouba bolas"),
-    ("rel_fta_rate", 1, "Vive na linha de lance livre"),
-    ("rel_opp_fg2_pct", -1, "Muralha no garrafão"),
-    ("rel_opp_fg3_pct", -1, "Fecha o perímetro"),
+    ("rel_ortg", 1, "Elite offense"),
+    ("rel_drtg", -1, "Elite defense"),
+    ("rel_fg3a_rate", 1, "Three-point bombers"),
+    ("rel_fg3_pct", 1, "Deadly from deep"),
+    ("rel_orb_pct", 1, "Owns the offensive glass"),
+    ("rel_drb_pct", 1, "Locks down the defensive glass"),
+    ("rel_pace", 1, "Run and gun"),
+    ("rel_pace", -1, "Grind-it-out pace"),
+    ("rel_tov_pct", -1, "Takes care of the ball"),
+    ("rel_opp_tov_pct", 1, "Ball-hawking defense"),
+    ("rel_fta_rate", 1, "Lives at the free-throw line"),
+    ("rel_opp_fg2_pct", -1, "Wall in the paint"),
+    ("rel_opp_fg3_pct", -1, "Shuts down the arc"),
 ]
 MAXIMO_SELOS = 3
 DADOS = {}
@@ -52,7 +52,7 @@ async def ciclo_de_vida(_app):
     yield
 
 
-app = FastAPI(title="jogo-nba-eras", description="Séries melhor de 7 entre times de épocas diferentes da NBA.",
+app = FastAPI(title="jogo-nba-eras", description="Best-of-7 series between NBA teams from different eras.",
               lifespan=ciclo_de_vida)
 app.add_middleware(CORSMiddleware, allow_origins=ORIGENS_DO_FRONT, allow_methods=["*"], allow_headers=["*"])
 
@@ -87,12 +87,12 @@ def buscar_time(temporada, team_id):
     try:
         return DADOS["times"].loc[(temporada, team_id)]
     except KeyError:
-        raise HTTPException(404, f"Time {team_id} não encontrado em {temporada}") from None
+        raise HTTPException(404, f"Team {team_id} not found in {temporada}") from None
 
 
 def validar_era(era):
     if era not in ERAS and era not in DADOS["liga"].index:
-        raise HTTPException(422, f"Era '{era}' não existe. Use uma de {list(ERAS)} ou uma temporada.")
+        raise HTTPException(422, f"Era '{era}' does not exist. Use one of {list(ERAS)} or a season.")
 
 
 def siglas(a, b):
@@ -150,7 +150,7 @@ def temporadas():
 @app.get("/times")
 def times(temporada: str = Query(examples=["2016-17"])):
     if temporada not in DADOS["liga"].index:
-        raise HTTPException(404, f"Temporada '{temporada}' não existe")
+        raise HTTPException(404, f"Season '{temporada}' not found")
     da_temporada = DADOS["times"].loc[temporada]
     jogos = cestinhas_da_temporada(temporada)
     resposta = []
@@ -172,7 +172,7 @@ def eras():
     for nome, (inicio, fim) in ERAS.items():
         liga, _ = ambiente(DADOS, nome)
         resposta.append({
-            "nome": nome, "descricao": DESCRICOES[nome], "inicio": inicio, "fim": fim,
+            "nome": nome, "rotulo": ROTULOS_EN[nome], "descricao": DESCRICOES_EN[nome], "inicio": inicio, "fim": fim,
             "ritmo": round(float(liga.pace), 1), "volume_de_3": round(float(liga.fg3a_rate), 3),
             "pontos_por_arremesso_de_2": round(float(2 * liga.fg2_pct), 2),
             "pontos_por_arremesso_de_3": round(float(3 * liga.fg3_pct), 2),

@@ -84,23 +84,23 @@ def atuacoes(box, sigla):
         dois_digitos = sum(v >= 10 for v in (j.PTS, j.REB, j.AST, j.ROB, j.TOC))
         quem = f"{j.Jogador} ({sigla})"
         if j.PTS >= 50:
-            achados.append((0, "50 pontos", f"{quem} explode com {j.PTS} pontos"))
+            achados.append((0, "50 points", f"{quem} erupts for {j.PTS} points"))
         elif j.PTS >= 40:
-            achados.append((2, "40 pontos", f"Noite de {j.PTS} pontos de {quem}"))
+            achados.append((2, "40 points", f"{j.PTS}-point night for {quem}"))
         if dois_digitos >= 3:
-            achados.append((1, "triplo-duplo", f"Triplo-duplo de {quem}: {j.PTS} pts, {j.REB} reb, {j.AST} ast"))
+            achados.append((1, "triple-double", f"Triple-double for {quem}: {j.PTS} pts, {j.REB} reb, {j.AST} ast"))
         elif j.PTS >= 20 and j.REB >= 20:
-            achados.append((1, "20-20", f"{quem} domina o garrafão: {j.PTS} pontos e {j.REB} rebotes"))
+            achados.append((1, "20-20", f"{quem} owns the paint: {j.PTS} points and {j.REB} rebounds"))
         elif j.REB >= 20:
-            achados.append((3, "20 rebotes", f"{quem} pega {j.REB} rebotes"))
+            achados.append((3, "20 rebounds", f"{quem} grabs {j.REB} rebounds"))
         if j.AST >= 15:
-            achados.append((3, "assistências", f"{quem} distribui {j.AST} assistências"))
+            achados.append((3, "assists", f"{quem} dishes out {j.AST} assists"))
         if bolas_de_3 >= 7:
-            achados.append((3, "chuva de 3", f"{quem} acerta {bolas_de_3} bolas de 3"))
+            achados.append((3, "from downtown", f"{quem} drains {bolas_de_3} threes"))
         if j.TOC >= 5:
-            achados.append((4, "tocos", f"{quem} dá {j.TOC} tocos"))
+            achados.append((4, "blocks", f"{quem} swats {j.TOC} shots"))
         if j.ROB >= 6:
-            achados.append((4, "roubos", f"{quem} rouba {j.ROB} bolas"))
+            achados.append((4, "steals", f"{quem} racks up {j.ROB} steals"))
     return achados
 
 
@@ -117,12 +117,12 @@ def decidiu_no_fim(lances, a_venceu, siglas, box_vencedor):
     fim = lances[-1]["segundo"]
     if virada is None or fim - virada["segundo"] > 60:
         return None
-    autor = re.match(r"^(.*?) (acerta|converte)", virada["texto"])
+    autor = re.match(r"^(.*?) makes ", virada["texto"])
     if not autor:
         return None
     curto = autor.group(1)
     nome = next((n for n in box_vencedor.Jogador if n == curto or n.endswith(" " + curto)), curto)
-    return (0, "decidiu no fim", f"{nome} ({sigla_vencedor}) decide o jogo a {virada['relogio']} do fim")
+    return (0, "clutch", f"{nome} ({sigla_vencedor}) puts it away with {virada['relogio']} left")
 
 
 def destaques_do_jogo(box_a, box_b, lances, a_venceu, siglas, maximo=3):
@@ -140,22 +140,22 @@ def lideres(box):
 def manchete(numero, vencedor, perdedor, box_vencedor, box_perdedor, prorrogacoes):
     destaque = box_vencedor.loc[box_vencedor.PTS.idxmax()]
     bolas_de_3 = int(destaque["3P"].split("-")[0])
-    feito = f"{destaque.Jogador} faz {destaque.PTS}"
+    feito = f"{destaque.Jogador} scores {destaque.PTS}"
     if bolas_de_3 >= 5:
-        feito += f" com {bolas_de_3} bolas de 3"
+        feito += f" with {bolas_de_3} threes"
     elif destaque.REB >= 12:
-        feito += f" e pega {destaque.REB} rebotes"
+        feito += f" and grabs {destaque.REB} rebounds"
     elif destaque.AST >= 10:
-        feito += f" e dá {destaque.AST} assistências"
-    texto = f"{feito} e o {vencedor} vence o jogo {numero}"
+        feito += f" and dishes out {destaque.AST} assists"
+    texto = f"{feito} as {vencedor} win Game {numero}"
     if prorrogacoes:
-        texto += " na prorrogação" if prorrogacoes == 1 else f" em {prorrogacoes} prorrogações"
+        texto += " in overtime" if prorrogacoes == 1 else f" in {prorrogacoes} overtimes"
     do_vencedor = list(box_vencedor[box_vencedor.eliminado].Jogador)
     do_perdedor = list(box_perdedor[box_perdedor.eliminado].Jogador)
     if do_vencedor:
-        texto += f", mesmo com {' e '.join(do_vencedor)} eliminado{'s' if len(do_vencedor) > 1 else ''} por faltas"
+        texto += f", despite {' and '.join(do_vencedor)} fouling out"
     if do_perdedor:
-        texto += f". O {perdedor} perdeu {' e '.join(do_perdedor)} por faltas"
+        texto += f". {perdedor} lost {' and '.join(do_perdedor)} to fouls"
     return texto
 
 

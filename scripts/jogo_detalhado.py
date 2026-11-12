@@ -46,7 +46,7 @@ def falta(defesa, segundo, lances, contexto):
     defesa.box["pf"][i] += 1
     if defesa.box["pf"][i] == LIMITE_FALTAS:
         defesa.eliminado_em[i] = segundo
-        lances.append(f"{defesa.nomes[i]} ({defesa.sigla}) comete a 6ª falta e está eliminado")
+        lances.append(f"{defesa.nomes[i]} ({defesa.sigla}) fouls out")
 
 
 def posse(atk, defesa, fator, segundo, contexto):
@@ -60,11 +60,11 @@ def posse(atk, defesa, fator, segundo, contexto):
     if rng.random() < a.tov:
         i = escolher(atk.peso("tov"), rng)
         atk.box["tov"][i] += 1
-        texto = f"Desperdício de {atk.nomes[i]}"
+        texto = f"Turnover by {atk.nomes[i]}"
         if rng.random() < defesa.taxas["roubo_por_desperdicio"]:
             j = escolher(defesa.peso("stl"), rng)
             defesa.box["stl"][j] += 1
-            texto += f", roubo de {defesa.nomes[j]}"
+            texto += f", stolen by {defesa.nomes[j]}"
         return 0, lances + [texto]
 
     while True:
@@ -76,50 +76,50 @@ def posse(atk, defesa, fator, segundo, contexto):
             atk.box["fta"][i] += 2
             atk.box["ftm"][i] += acertos
             atk.box["pts"][i] += acertos
-            return acertos, lances + [f"{atk.nomes[i]} converte {acertos} de 2 lances livres"]
+            return acertos, lances + [f"{atk.nomes[i]} makes {acertos} of 2 free throws"]
 
         de_3 = rng.random() < a.tentativa_3
         i = escolher(atk.peso("fg3a" if de_3 else "fg2a"), rng)
         base = a.acerto_3 * atk.elenco["rel_3"][i] if de_3 else a.acerto_2 * atk.elenco["rel_2"][i]
         atk.box["fga"][i] += 1
         atk.box["fg3a"][i] += de_3
-        tipo = "de 3" if de_3 else "de 2"
+        tipo = "3-pointer" if de_3 else "2-pointer"
         if rng.random() < min(base * fator, 0.95):
             valor = 3 if de_3 else 2
             atk.box["fgm"][i] += 1
             atk.box["fg3m"][i] += de_3
             atk.box["pts"][i] += valor
-            texto = f"{atk.nomes[i]} acerta {tipo}"
+            texto = f"{atk.nomes[i]} makes a {tipo}"
             if rng.random() < atk.taxas["assistencia_por_cesta"]:
                 j = escolher(atk.peso("ast"), rng, excluir=i)
                 if j is not None:
                     atk.box["ast"][j] += 1
-                    texto += f" (assistência de {atk.nomes[j]})"
+                    texto += f" (assist: {atk.nomes[j]})"
             return valor, lances + [texto]
 
-        texto = f"{atk.nomes[i]} erra {tipo}"
+        texto = f"{atk.nomes[i]} misses a {tipo}"
         if rng.random() < defesa.taxas["toco_por_erro"]:
             j = escolher(defesa.peso("blk"), rng)
             defesa.box["blk"][j] += 1
-            texto += f", toco de {defesa.nomes[j]}"
+            texto += f", blocked by {defesa.nomes[j]}"
         if rng.random() < a.rebote_of:
             j = escolher(atk.peso("oreb"), rng)
             atk.box["oreb"][j] += 1
-            lances.append(texto + f"; rebote ofensivo de {atk.nomes[j]}")
+            lances.append(texto + f"; offensive rebound by {atk.nomes[j]}")
             continue
         j = escolher(defesa.peso("dreb"), rng)
         defesa.box["dreb"][j] += 1
-        return 0, lances + [texto + f"; rebote de {defesa.nomes[j]}"]
+        return 0, lances + [texto + f"; rebound by {defesa.nomes[j]}"]
 
 
 def relogio(segundo):
     if segundo < 4 * SEGUNDOS_QUARTO:
         periodo, restante = int(segundo // SEGUNDOS_QUARTO) + 1, SEGUNDOS_QUARTO - segundo % SEGUNDOS_QUARTO
-        nome = f"{periodo}º quarto"
+        nome = f"Q{periodo}"
     else:
         extra = segundo - 4 * SEGUNDOS_QUARTO
         periodo, restante = int(extra // SEGUNDOS_PRORROGACAO) + 1, SEGUNDOS_PRORROGACAO - extra % SEGUNDOS_PRORROGACAO
-        nome = f"{periodo}ª prorrogação"
+        nome = "OT" if periodo == 1 else f"{periodo}OT"
     restante = int(round(restante))
     return nome, f"{restante // 60}:{restante % 60:02d}"
 
