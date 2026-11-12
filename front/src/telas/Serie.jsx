@@ -5,6 +5,7 @@ import CartaoJogo from "../componentes/CartaoJogo.jsx";
 import FinalNarrado, { EscolhaDoFinal } from "../componentes/FinalNarrado.jsx";
 import MiniCartoes from "../componentes/MiniCartoes.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
+import { rotuloDaEra } from "../formato.js";
 
 const PAUSA_DO_AUTOMATICO = 2200;
 
@@ -73,7 +74,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
               setTentativa((n) => n + 1);
             }}
           >
-            Montando a série nos {pedido.era}…
+            Setting up the series in the {rotuloDaEra(pedido.era)}…
           </Aviso>
         </main>
       </div>
@@ -84,11 +85,11 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
   const ultimo = serie.jogos[revelados - 1];
   const vitorias = { a: ultimo?.vitorias_a ?? 0, b: ultimo?.vitorias_b ?? 0 };
   const narrando = final?.modo === "narrar";
-  let situacao = "Série empatada em 0-0";
-  if (terminou) situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} vence a série por 4-${Math.min(vitorias.a, vitorias.b)}`;
+  let situacao = "Series tied 0-0";
+  if (terminou) situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} wins the series 4-${Math.min(vitorias.a, vitorias.b)}`;
   else if (vitorias.a !== vitorias.b)
-    situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} lidera por ${Math.max(vitorias.a, vitorias.b)}-${Math.min(vitorias.a, vitorias.b)}`;
-  else if (revelados) situacao = `Série empatada em ${vitorias.a}-${vitorias.b}`;
+    situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} leads ${Math.max(vitorias.a, vitorias.b)}-${Math.min(vitorias.a, vitorias.b)}`;
+  else if (revelados) situacao = `Series tied ${vitorias.a}-${vitorias.b}`;
 
   let palco;
   if (narrando) palco = <FinalNarrado key={final.indice} jogo={serie.jogos[final.indice]} serie={serie} aoTerminar={terminarFinal} />;
@@ -99,10 +100,10 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
     palco = (
       <div className="cartao-jogo cartao-vazio">
         <p className="manchete">
-          {a.nome} {a.temporada} x {b.nome} {b.temporada}
+          {a.nome} {a.temporada} vs {b.nome} {b.temporada}
         </p>
         <p>
-          Sete jogos no máximo, jogados no ambiente dos {serie.era}. A série só começa quando você mandar.
+          Up to seven games, played under {rotuloDaEra(serie.era)} conditions. The series starts when you say so.
         </p>
       </div>
     );
@@ -111,10 +112,10 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
     <div className="tela">
       <Topo>
         <span className="topo-info">
-          {a.sigla} {a.temporada} x {b.sigla} {b.temporada} · {serie.era}
+          {a.sigla} {a.temporada} vs {b.sigla} {b.temporada} · {rotuloDaEra(serie.era)}
         </span>
         <button className="botao botao-discreto" onClick={aoTrocarTimes}>
-          Trocar times
+          Change teams
         </button>
       </Topo>
 
@@ -141,26 +142,26 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
 
         <div className="serie-corpo">
           {palco}
-          <aside className="controles" aria-label="Controles da série">
+          <aside className="controles" aria-label="Series controls">
             {terminou ? (
               <button className="botao botao-principal" onClick={() => aoTerminar(serie)}>
-                Revelar as chances
+                Reveal the odds
               </button>
             ) : (
               <>
                 <button className="botao botao-principal" onClick={() => avancar(false)} disabled={automatico || !!final}>
-                  {revelados ? "Próximo jogo" : "Começar a série"}
+                  {revelados ? "Next game" : "Start the series"}
                 </button>
                 <button className="botao" onClick={() => setAutomatico((v) => !v)} disabled={!!final} aria-pressed={automatico}>
-                  {automatico ? "Parar o automático" : "Avançar sozinho"}
+                  {automatico ? "Stop autoplay" : "Autoplay"}
                 </button>
                 <button className="botao" onClick={() => mostrar(total - 1)} disabled={narrando}>
-                  Pular para o fim da série
+                  Skip to the end of the series
                 </button>
               </>
             )}
             <button className="botao" onClick={aoNovaSerie}>
-              Jogar de novo
+              Play again
             </button>
           </aside>
         </div>
@@ -177,7 +178,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
         />
       )}
 
-      <Rodape>Uma das séries possíveis; outra semente traz outra série.</Rodape>
+      <Rodape>One possible series; playing again gives a different one.</Rodape>
     </div>
   );
 }

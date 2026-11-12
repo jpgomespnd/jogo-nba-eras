@@ -5,7 +5,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
     <section className={`carta-time lado-${lado}`} aria-label={rotulo}>
       <div className="carta-controles">
         <label>
-          Temporada
+          Season
           <select value={temporada} onChange={(e) => aoTrocarTemporada(e.target.value)}>
             {temporadas.map((t) => (
               <option key={t}>{t}</option>
@@ -13,7 +13,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
           </select>
         </label>
         <label>
-          Time
+          Team
           <select value={time?.id ?? ""} onChange={(e) => aoTrocarTime(Number(e.target.value))} disabled={!times}>
             {(times ?? []).map((t) => (
               <option key={t.id} value={t.id}>
@@ -33,19 +33,19 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
             <div>
               <h2 className="carta-nome">{time.nome}</h2>
               <p className="carta-campanha">
-                <span className="placar-numero">{campanha(time)}</span> em {temporada}, saldo de{" "}
-                {comSinal(time.saldo)} por jogo
+                <span className="placar-numero">{campanha(time)}</span> in {temporada}, {comSinal(time.saldo)} point
+                differential
               </p>
             </div>
           </div>
-          <ul className="selos" aria-label="Estilo de jogo">
+          <ul className="selos" aria-label="Playing style">
             {time.selos.length ? (
               time.selos.map((s) => <li key={s}>{s}</li>)
             ) : (
-              <li className="selo-vazio">Sem nenhum ponto fora da curva</li>
+              <li className="selo-vazio">No standout traits</li>
             )}
           </ul>
-          <p className="rotulo">Cestinhas, em pontos por jogo</p>
+          <p className="rotulo">Top scorers, points per game</p>
           <ol className="cestinhas">
             {time.destaques.map((d) => (
               <li key={d.jogador}>
@@ -56,7 +56,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
           </ol>
         </>
       ) : (
-        <div className="carta-vazia">Carregando os times de {temporada}…</div>
+        <div className="carta-vazia">Loading {temporada} teams…</div>
       )}
     </section>
   );

@@ -3,6 +3,7 @@ import { temaDaEra } from "./formato.js";
 import Escolha from "./telas/Escolha.jsx";
 import Revelacao from "./telas/Revelacao.jsx";
 import Serie from "./telas/Serie.jsx";
+import { ContextoVisual, salvarVisual, visualSalvo } from "./visual.js";
 
 const ESCOLHA_INICIAL = {
   a: { temporada: "2009-10", id: 1610612747 },
@@ -17,11 +18,13 @@ export default function App() {
   const [semente, setSemente] = useState(0);
   const [serie, setSerie] = useState(null);
   const [focarEra, setFocarEra] = useState(false);
+  const [visual, setVisual] = useState(visualSalvo);
 
-  // A interface veste a era escolhida, já na tela de escolha.
+  // A interface veste a era escolhida, já na tela de escolha, a não ser que o visual seja escuro ou claro.
   useEffect(() => {
-    document.documentElement.dataset.era = temaDaEra(escolha.era);
-  }, [escolha.era]);
+    document.documentElement.dataset.era = visual === "era" ? temaDaEra(escolha.era) : visual;
+    salvarVisual(visual);
+  }, [visual, escolha.era]);
 
   function irPara(proxima, era = false) {
     setFocarEra(era);
@@ -43,8 +46,9 @@ export default function App() {
     mando: escolha.mando,
   };
 
+  let pagina;
   if (tela === "serie") {
-    return (
+    pagina = (
       <Serie
         key={semente}
         pedido={{ ...confronto, semente }}
@@ -56,9 +60,8 @@ export default function App() {
         aoTrocarTimes={() => irPara("escolha")}
       />
     );
-  }
-  if (tela === "revelacao") {
-    return (
+  } else if (tela === "revelacao") {
+    pagina = (
       <Revelacao
         confronto={confronto}
         serie={serie}
@@ -67,6 +70,9 @@ export default function App() {
         aoTrocarTimes={() => irPara("escolha")}
       />
     );
+  } else {
+    pagina = <Escolha escolha={escolha} setEscolha={setEscolha} focarEra={focarEra} aoComecar={() => irPara("serie")} />;
   }
-  return <Escolha escolha={escolha} setEscolha={setEscolha} focarEra={focarEra} aoComecar={() => irPara("serie")} />;
+
+  return <ContextoVisual value={{ visual, setVisual }}>{pagina}</ContextoVisual>;
 }

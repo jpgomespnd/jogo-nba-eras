@@ -11,11 +11,11 @@ function relogio(segundo) {
   if (segundo <= regulamentar) {
     const quarto = Math.max(1, Math.ceil(segundo / QUARTO));
     fim = quarto * QUARTO;
-    periodo = `${quarto}º quarto`;
+    periodo = `Q${quarto}`;
   } else {
     const extra = Math.ceil((segundo - regulamentar) / PRORROGACAO);
     fim = regulamentar + extra * PRORROGACAO;
-    periodo = extra === 1 ? "Prorrogação" : `${extra}ª prorrogação`;
+    periodo = extra === 1 ? "OT" : `${extra}OT`;
   }
   const resto = Math.max(0, Math.floor(fim - segundo));
   return { periodo, tempo: `${Math.floor(resto / 60)}:${String(resto % 60).padStart(2, "0")}` };
@@ -38,19 +38,19 @@ export function EscolhaDoFinal({ jogo, serie, aoAcompanhar, aoSimular }) {
 
   return (
     <dialog ref={caixa} className="dialogo" aria-labelledby="titulo-final" onCancel={(e) => e.preventDefault()}>
-      <h2 id="titulo-final">Jogo {jogo.numero} pegando fogo</h2>
+      <h2 id="titulo-final">Game {jogo.numero} is coming down to the wire</h2>
       <p className="dialogo-placar placar-numero">
-        {serie.time_a.sigla} {antes.pts_a} x {antes.pts_b} {serie.time_b.sigla}
+        {serie.time_a.sigla} {antes.pts_a}–{antes.pts_b} {serie.time_b.sigla}
       </p>
       <p>
-        Faltam {antes.tempo} no {antes.periodo.toLowerCase()}. Como você quer ver o final?
+        {antes.tempo} left in {antes.periodo}. How do you want to see the finish?
       </p>
       <div className="acoes">
         <button className="botao botao-principal" onClick={aoAcompanhar} autoFocus>
-          Acompanhar lance a lance
+          Watch play by play
         </button>
         <button className="botao" onClick={aoSimular}>
-          Simular até o fim
+          Simulate to the end
         </button>
       </div>
     </dialog>
@@ -79,10 +79,10 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
   const acabou = segundo > ultimo;
 
   return (
-    <article className="cartao-jogo final-narrado" aria-label={`Final do jogo ${jogo.numero}`}>
+    <article className="cartao-jogo final-narrado" aria-label={`Finish of game ${jogo.numero}`}>
       <div className="cartao-topo">
-        <span>Jogo {jogo.numero} · final ao vivo</span>
-        {jogo.decisivo && <span className="selo-decisivo">Jogo decisivo</span>}
+        <span>Game {jogo.numero} · live finish</span>
+        {jogo.decisivo && <span className="selo-decisivo">Elimination game</span>}
       </div>
 
       <div className="placar">
@@ -91,7 +91,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
           <span className="placar-numero placar-grande">{placar.pts_a}</span>
         </div>
         <span className="relogio">
-          <span className="placar-numero">{acabou ? "Fim" : tempo}</span>
+          <span className="placar-numero">{acabou ? "Final" : tempo}</span>
           <span>{periodo}</span>
         </span>
         <div className="placar-lado lado-b">
@@ -101,7 +101,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
       </div>
 
       <div className="narracao-controles">
-        <div className="velocidades" role="radiogroup" aria-label="Velocidade">
+        <div className="velocidades" role="radiogroup" aria-label="Speed">
           {VELOCIDADES.map((v) => (
             <button key={v} role="radio" aria-checked={velocidade === v} onClick={() => setVelocidade(v)}>
               {v}x
@@ -109,7 +109,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
           ))}
         </div>
         <button className="botao" onClick={aoTerminar}>
-          Pular para o fim do jogo
+          Skip to the end of the game
         </button>
       </div>
 

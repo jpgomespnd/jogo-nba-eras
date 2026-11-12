@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import CartaTime from "../componentes/CartaTime.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
-import { numero, porcento } from "../formato.js";
+import { numero, porcento, rotuloDaEra } from "../formato.js";
 
 // Os times de cada temporada são pedidos uma vez só.
 const timesPorTemporada = new Map();
@@ -75,7 +75,7 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
             setErro(null);
             setTentativa((n) => n + 1);
           }}>
-            Buscando temporadas e eras…
+            Loading seasons and eras…
           </Aviso>
         </main>
       </div>
@@ -83,8 +83,8 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
   }
 
   const cartas = [
-    ["a", "Time A", timeA],
-    ["b", "Time B", timeB],
+    ["a", "Team A", timeA],
+    ["b", "Team B", timeB],
   ].map(([lado, rotulo, time]) => (
     <CartaTime
       key={lado}
@@ -100,27 +100,27 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
   ));
 
   const opcoesDeMando = [
-    ["a", timeA ? `${timeA.sigla} ${escolha.a.temporada}` : "Time A"],
-    ["b", timeB ? `${timeB.sigla} ${escolha.b.temporada}` : "Time B"],
-    ["neutro", "Quadra neutra"],
+    ["a", timeA ? `${timeA.sigla} ${escolha.a.temporada}` : "Team A"],
+    ["b", timeB ? `${timeB.sigla} ${escolha.b.temporada}` : "Team B"],
+    ["neutro", "Neutral court"],
   ];
 
   return (
     <div className="tela">
       <Topo>
-        <span className="topo-info">Série melhor de 7 entre épocas</span>
+        <span className="topo-info">Best-of-7 series across eras</span>
       </Topo>
       <main className="conteudo escolha">
         <div className="duelo">
           {cartas[0]}
           <div className="versus" aria-hidden="true">
-            x
+            vs
           </div>
           {cartas[1]}
         </div>
 
         <section className="eras" ref={secaoEras}>
-          <h2 className="titulo-secao">Em que era a série é jogada</h2>
+          <h2 className="titulo-secao">Which era the series is played in</h2>
           <div className="eras-grade" role="radiogroup" aria-label="Era">
             {eras.map((era) => (
               <button
@@ -130,13 +130,13 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
                 className="era"
                 onClick={() => setEscolha((e) => ({ ...e, era: era.nome }))}
               >
-                <span className="era-nome">{era.nome}</span>
+                <span className="era-nome era-rotulo">{era.rotulo ?? rotuloDaEra(era.nome)}</span>
                 <span className="era-numeros">
                   <span>
-                    <b className="placar-numero">{numero(era.ritmo, 1)}</b> posses por jogo
+                    <b className="placar-numero">{numero(era.ritmo, 1)}</b> possessions per game
                   </span>
                   <span>
-                    <b className="placar-numero">{porcento(era.volume_de_3)}</b> dos arremessos de 3
+                    <b className="placar-numero">{porcento(era.volume_de_3)}</b> of shots are 3s
                   </span>
                 </span>
                 <span className="era-descricao">{era.descricao}</span>
@@ -147,7 +147,7 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
 
         <div className="rodape-escolha">
           <fieldset className="mando">
-            <legend className="titulo-secao">Mando de quadra</legend>
+            <legend className="titulo-secao">Home court</legend>
             <div className="mando-opcoes">
               {opcoesDeMando.map(([valor, texto]) => (
                 <label key={valor} className="mando-opcao">
@@ -165,15 +165,15 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
           </fieldset>
           <div className="acoes">
             <button className="botao" onClick={sortearTimes}>
-              Sortear times
+              Random teams
             </button>
             <button className="botao botao-principal" onClick={aoComecar} disabled={!timeA || !timeB}>
-              Começar a série
+              Start the series
             </button>
           </div>
         </div>
       </main>
-      <Rodape>As chances de cada time só aparecem quando a série termina.</Rodape>
+      <Rodape>Each team's odds are revealed only when the series ends.</Rodape>
     </div>
   );
 }

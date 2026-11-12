@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
-import { comSinal, numero, porcento } from "../formato.js";
+import { comSinal, numero, porcento, rotuloDaEra } from "../formato.js";
 
 const RESULTADOS = ["4-0", "4-1", "4-2", "4-3"];
 const ESTILOS = [
-  ["ritmo", "Posses por jogo", (v) => numero(v, 1)],
-  ["efg", "Aproveitamento efetivo (eFG)", (v) => porcento(v, 1)],
-  ["volume_de_3", "Arremessos que são de 3", (v) => porcento(v)],
-  ["desperdicios", "Posses desperdiçadas", (v) => porcento(v, 1)],
-  ["rebote_ofensivo", "Rebotes ofensivos pegos", (v) => porcento(v)],
-  ["lances_livres", "Lances livres por arremesso", (v) => numero(v, 2)],
-  ["efg_cedido", "eFG que a defesa cede", (v) => porcento(v, 1)],
-  ["desperdicios_forcados", "Desperdícios que a defesa força", (v) => porcento(v, 1)],
-  ["rebote_defensivo", "Rebotes defensivos pegos", (v) => porcento(v)],
-  ["forca_extra", "Força além dos números (pontos)", (v) => comSinal(v)],
+  ["ritmo", "Possessions per game", (v) => numero(v, 1)],
+  ["efg", "Effective field goal % (eFG)", (v) => porcento(v, 1)],
+  ["volume_de_3", "Share of shots from 3", (v) => porcento(v)],
+  ["desperdicios", "Turnover rate", (v) => porcento(v, 1)],
+  ["rebote_ofensivo", "Offensive rebound rate", (v) => porcento(v)],
+  ["lances_livres", "Free throws per shot", (v) => numero(v, 2)],
+  ["efg_cedido", "Opponent eFG allowed", (v) => porcento(v, 1)],
+  ["desperdicios_forcados", "Turnovers forced", (v) => porcento(v, 1)],
+  ["rebote_defensivo", "Defensive rebound rate", (v) => porcento(v)],
+  ["forca_extra", "Strength beyond the stats (points)", (v) => comSinal(v)],
 ];
 
 // Médias de cada jogador na série, a partir dos box scores.
@@ -60,15 +60,15 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
   return (
     <div className="tela">
       <Topo>
-        <span className="topo-info">Fim de série · {serie.era}</span>
+        <span className="topo-info">Series over · {rotuloDaEra(serie.era)}</span>
       </Topo>
       <main className="conteudo revelacao">
         <header className="revelacao-cabeca">
           <h1 className="revelacao-titulo">
-            {vencedor.nome} {vencedor.temporada} vence por {resultado}
+            {vencedor.nome} {vencedor.temporada} win {resultado}
           </h1>
           <p className="revelacao-sub">
-            Contra o {perdedor.nome} {perdedor.temporada}, em {jogos.length} jogos nos {serie.era}.
+            Against the {perdedor.nome} {perdedor.temporada}, in {jogos.length} games under {rotuloDaEra(serie.era)} conditions.
           </p>
         </header>
 
@@ -77,7 +77,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
             setErro(null);
             setTentativa((n) => n + 1);
           }}>
-            Simulando 10 mil séries para saber quem era o favorito…
+            Simulating 10,000 series to find out who was favored…
           </Aviso>
         ) : (
           <>
@@ -85,30 +85,30 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
             <div className="revelacao-grade">
               <Distribuicao chances={chances} a={a} b={b} lado={lado} resultado={resultado} />
               <section className="painel">
-                <h2 className="titulo-secao">Placar médio</h2>
+                <h2 className="titulo-secao">Average score</h2>
                 <div className="comparacao">
                   <span className="lado-a">{a.sigla}</span>
-                  <span>Nas 10 mil séries</span>
+                  <span>Across 10,000 series</span>
                   <span className="lado-b">{b.sigla}</span>
                   <b className="placar-numero">{numero(chances.media_pts_a, 1)}</b>
                   <span />
                   <b className="placar-numero">{numero(chances.media_pts_b, 1)}</b>
                   <b className="placar-numero">{numero(media("pts_a"), 1)}</b>
-                  <span>Nesta série</span>
+                  <span>This series</span>
                   <b className="placar-numero">{numero(media("pts_b"), 1)}</b>
                 </div>
-                <p className="nota">Uma série dura em média {numero(chances.jogos_medios, 1)} jogos.</p>
+                <p className="nota">A series lasts {numero(chances.jogos_medios, 1)} games on average.</p>
               </section>
             </div>
 
             <section className="painel">
-              <h2 className="titulo-secao">Como cada um joga nos {serie.era}</h2>
+              <h2 className="titulo-secao">How each team plays in the <span className="era-rotulo">{rotuloDaEra(serie.era)}</span></h2>
               <div className="tabela-rolavel">
                 <table className="estilos">
                   <thead>
                     <tr>
                       <th scope="col">
-                        <span className="visualmente-oculto">Estatística</span>
+                        <span className="visualmente-oculto">Stat</span>
                       </th>
                       <th scope="col" className="lado-a">
                         {a.sigla} {a.temporada}
@@ -134,7 +134,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
         )}
 
         <section className="painel">
-          <h2 className="titulo-secao">Quem carregou a série</h2>
+          <h2 className="titulo-secao">Who carried the series</h2>
           <div className="lideres-serie">
             {[
               ["a", a],
@@ -142,11 +142,11 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
             ].map(([l, time]) => (
               <table key={l}>
                 <caption className={`faixa-${l}`}>
-                  {time.sigla} {time.temporada}, médias por jogo
+                  {time.sigla} {time.temporada}, per game
                 </caption>
                 <thead>
                   <tr>
-                    <th scope="col">Jogador</th>
+                    <th scope="col">Player</th>
                     <th scope="col">PTS</th>
                     <th scope="col">REB</th>
                     <th scope="col">AST</th>
@@ -169,17 +169,17 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
 
         <div className="acoes acoes-fim">
           <button className="botao botao-principal" onClick={aoNovaSerie}>
-            Jogar de novo
+            Play again
           </button>
           <button className="botao" onClick={aoOutraEra}>
-            Jogar em outra era
+            Play in another era
           </button>
           <button className="botao" onClick={aoTrocarTimes}>
-            Trocar times
+            Change teams
           </button>
         </div>
       </main>
-      <Rodape>Chances calculadas em 10 mil séries simuladas com os mesmos times, era e mando.</Rodape>
+      <Rodape>Odds from 10,000 simulated series with the same teams, era and home court.</Rodape>
     </div>
   );
 }
@@ -189,16 +189,16 @@ function Zebrometro({ chances, lado, vencedor }) {
   const zebra = chance < 0.5;
   return (
     <section className={`zebrometro ${zebra ? "zebra" : "logica"}`}>
-      <p className="zebrometro-veredito">{zebra ? "Zebra!" : "Deu a lógica"}</p>
+      <p className="zebrometro-veredito">{zebra ? "Upset!" : "Chalk"}</p>
       <p>
         {zebra
-          ? `Antes da série, o ${vencedor.nome} tinha só ${porcento(chance)} de chance.`
-          : `O ${vencedor.nome} era favorito, com ${porcento(chance)} de chance.`}
+          ? `Before the series, the ${vencedor.nome} were given only ${porcento(chance)} odds.`
+          : `The ${vencedor.nome} were the favorites, at ${porcento(chance)}.`}
       </p>
       <div
         className="medidor"
         role="img"
-        aria-label={`Chance de cada time: ${porcento(chances.chance_a)} contra ${porcento(chances.chance_b)}`}
+        aria-label={`Each team's chance: ${porcento(chances.chance_a)} vs ${porcento(chances.chance_b)}`}
       >
         <span className="medidor-a" style={{ width: `${100 * chances.chance_a}%` }}>
           {porcento(chances.chance_a)}
@@ -213,7 +213,7 @@ function Distribuicao({ chances, a, b, lado, resultado }) {
   const maior = Math.max(...RESULTADOS.flatMap((r) => [chances.placares.a[r], chances.placares.b[r]]));
   return (
     <section className="painel">
-      <h2 className="titulo-secao">Como a série costuma terminar</h2>
+      <h2 className="titulo-secao">How the series usually ends</h2>
       <div className="distribuicao">
         {RESULTADOS.map((r) => (
           <div key={r} className="distribuicao-grupo">
@@ -234,8 +234,8 @@ function Distribuicao({ chances, a, b, lado, resultado }) {
         ))}
       </div>
       <p className="legenda">
-        <span className="ponto lado-a" /> {a.sigla} vence <span className="ponto lado-b" /> {b.sigla} vence{" "}
-        <span className="legenda-aconteceu">contorno: o que aconteceu</span>
+        <span className="ponto lado-a" /> {a.sigla} wins <span className="ponto lado-b" /> {b.sigla} wins{" "}
+        <span className="legenda-aconteceu">outlined: what happened</span>
       </p>
     </section>
   );

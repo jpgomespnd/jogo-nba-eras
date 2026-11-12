@@ -1,7 +1,9 @@
-/* Cada era veste a interface: cores, fontes e cantos mudam com data-era no <html>. */
+/* Cada era veste a interface: cores, fontes e cantos mudam com data-era no <html>.
+   "escuro" e "claro" são os visuais sem temática, para quem prefere a interface neutra. */
 
 :root,
 [data-era="90"] {
+  --esquema: dark;
   --fundo: #0a0f2c;
   --fundo-imagem: none;
   --painel: #12193f;
@@ -11,6 +13,8 @@
   --texto-suave: #c9c4b0;
   --destaque: #ffd23f;
   --sobre-destaque: #0a0f2c;
+  --alerta: #ff6b7d;
+  --estrela: #ffd23f;
   --cor-a: #3b8be8;
   --cor-b: #eb6834;
   --sobre-a: #fff;
@@ -30,6 +34,7 @@
 }
 
 [data-era="2000"] {
+  --esquema: dark;
   --fundo: #15181d;
   --fundo-imagem: radial-gradient(ellipse at top, #2c323c 0%, #15181d 60%);
   --painel: linear-gradient(180deg, #353b45 0%, #23272e 100%);
@@ -39,6 +44,8 @@
   --texto-suave: #aab4c2;
   --destaque: #7fd6ff;
   --sobre-destaque: #0d1b26;
+  --alerta: #ff6b7d;
+  --estrela: #7fd6ff;
   --cor-a: #3478e0;
   --cor-b: #e8632b;
   --sobre-a: #fff;
@@ -57,35 +64,40 @@
   --relevo: inset 0 1px 0 rgb(255 255 255 / 0.16), 0 2px 6px rgb(0 0 0 / 0.35);
 }
 
+/* Anos 2010: mixtapes de lances e gráficos de transmissão com cortes diagonais. */
 [data-era="2010"] {
-  --fundo: #eceff3;
-  --fundo-imagem: none;
-  --painel: #fff;
-  --painel-2: #f4f6f9;
-  --borda: #d3d9e1;
-  --texto: #15191f;
-  --texto-suave: #4e5866;
-  --destaque: #d6452f;
-  --sobre-destaque: #fff;
-  --cor-a: #1f62c4;
-  --cor-b: #e0751d;
+  --esquema: dark;
+  --fundo: #0e1330;
+  --fundo-imagem: linear-gradient(160deg, #161c45 0%, #0e1330 45%);
+  --painel: #161d47;
+  --painel-2: #111739;
+  --borda: #2d3878;
+  --texto: #f3f4fb;
+  --texto-suave: #aab1d8;
+  --destaque: #ff3d7f;
+  --sobre-destaque: #1a0712;
+  --alerta: #ff7a9c;
+  --estrela: #ffc93c;
+  --cor-a: #3d8bff;
+  --cor-b: #ffb020;
   --sobre-a: #fff;
-  --sobre-b: #1b1100;
-  --raio: 2px;
-  --fonte-titulo: "Barlow Condensed", sans-serif;
-  --fonte-texto: "Inter", sans-serif;
-  --fonte-numero: "Barlow Condensed", sans-serif;
+  --sobre-b: #1d1300;
+  --raio: 0;
+  --fonte-titulo: "Oswald", sans-serif;
+  --fonte-texto: "Roboto", sans-serif;
+  --fonte-numero: "Oswald", sans-serif;
   --titulo-caixa: uppercase;
-  --titulo-peso: 700;
+  --titulo-peso: 600;
   --titulo-estilo: normal;
-  --titulo-espaco: 0.01em;
+  --titulo-espaco: 0.02em;
   --texto-tamanho: 15px;
-  --numero-escala: 1.1;
+  --numero-escala: 1;
   --brilho-numero: none;
   --relevo: none;
 }
 
 [data-era="2020"] {
+  --esquema: dark;
   --fundo: #101216;
   --fundo-imagem: none;
   --painel: #181b21;
@@ -95,6 +107,8 @@
   --texto-suave: #9aa3b2;
   --destaque: #eceef2;
   --sobre-destaque: #101216;
+  --alerta: #ff6b7d;
+  --estrela: #eceef2;
   --cor-a: #4f8cff;
   --cor-b: #ff8a4c;
   --sobre-a: #0b1426;
@@ -111,6 +125,65 @@
   --numero-escala: 1;
   --brilho-numero: none;
   --relevo: none;
+}
+
+/* Sem temática: a mesma interface, neutra, em Inter. */
+[data-era="escuro"],
+[data-era="claro"] {
+  --fundo-imagem: none;
+  --raio: 8px;
+  --fonte-titulo: "Inter", sans-serif;
+  --fonte-texto: "Inter", sans-serif;
+  --fonte-numero: "Inter", sans-serif;
+  --titulo-caixa: none;
+  --titulo-peso: 700;
+  --titulo-estilo: normal;
+  --titulo-espaco: -0.01em;
+  --texto-tamanho: 15px;
+  --numero-escala: 1;
+  --brilho-numero: none;
+  --relevo: none;
+}
+
+[data-era="escuro"] {
+  --esquema: dark;
+  --fundo: #131519;
+  --painel: #1b1e23;
+  --painel-2: #23272d;
+  --borda: #30353d;
+  --texto: #eceef1;
+  --texto-suave: #a0a8b4;
+  --destaque: #5b9bff;
+  --sobre-destaque: #0b1426;
+  --alerta: #ff7a85;
+  --estrela: #f5c451;
+  --cor-a: #5b9bff;
+  --cor-b: #ff9152;
+  --sobre-a: #0b1426;
+  --sobre-b: #2a1205;
+}
+
+[data-era="claro"] {
+  --esquema: light;
+  --fundo: #f4f5f7;
+  --painel: #fff;
+  --painel-2: #f0f2f5;
+  --borda: #d8dce2;
+  --texto: #16191d;
+  --texto-suave: #535c69;
+  --destaque: #1f5fc4;
+  --sobre-destaque: #fff;
+  --alerta: #b3172b;
+  --estrela: #9a6b00;
+  --cor-a: #1f5fc4;
+  --cor-b: #d4621a;
+  --sobre-a: #fff;
+  --sobre-b: #fff;
+}
+
+[data-era="escuro"] .placar-numero,
+[data-era="claro"] .placar-numero {
+  font-weight: 700;
 }
 
 /* Anos 90: linhas de tubo de TV por cima de tudo e o selo AO VIVO. */
@@ -142,9 +215,25 @@
   border-bottom: 4px solid var(--destaque);
 }
 
-/* Anos 2010: chapado, sem relevo, blocos de cor. */
-[data-era="2010"] .botao-principal {
-  border-radius: 0;
+/* Anos 2010: blocos de cor cortados em diagonal, como as faixas das transmissões. */
+[data-era="2010"] :is(.botao-principal, .sigla, .selo-decisivo, .faixa-a, .faixa-b, .zebrometro-veredito) {
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  padding-left: 22px;
+  padding-right: 22px;
+}
+
+[data-era="2010"] .sigla {
+  width: 88px;
+}
+
+[data-era="2010"] .topo {
+  border-bottom: 3px solid var(--destaque);
+}
+
+[data-era="2010"] .era[aria-checked="true"],
+[data-era="2010"] .mini[aria-current="true"] {
+  background: var(--painel-2);
+  box-shadow: inset 4px 0 0 var(--destaque);
 }
 
 /* Anos 2020: a estatística é a estrela. */

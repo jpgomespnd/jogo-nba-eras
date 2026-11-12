@@ -1,13 +1,30 @@
+import { useContext } from "react";
+import { ContextoVisual, VISUAIS } from "../visual.js";
+
 // Topo, rodapé e avisos que se repetem nas três telas.
+
+function SeletorVisual() {
+  const { visual, setVisual } = useContext(ContextoVisual);
+  return (
+    <div className="seletor-visual" role="radiogroup" aria-label="Appearance">
+      {VISUAIS.map(([valor, texto]) => (
+        <button key={valor} role="radio" aria-checked={visual === valor} onClick={() => setVisual(valor)}>
+          {texto}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function Topo({ children }) {
   return (
     <header className="topo">
       <div className="marca">
-        <span className="ao-vivo">AO VIVO</span>
+        <span className="ao-vivo">LIVE</span>
         <span>jogo-nba-eras</span>
       </div>
       {children}
+      <SeletorVisual />
     </header>
   );
 }
@@ -15,7 +32,7 @@ export function Topo({ children }) {
 export function Rodape({ children }) {
   return (
     <footer className="rodape">
-      {children} Projeto não oficial, sem vínculo com a NBA.
+      {children} Unofficial project, not affiliated with the NBA.
     </footer>
   );
 }
@@ -25,12 +42,12 @@ export function Aviso({ erro, aoTentar, children }) {
     return (
       <div className="aviso" role="alert">
         <p>
-          A API não respondeu ({erro}). Confira se ela está ligada com{" "}
-          <code>.venv\Scripts\uvicorn --app-dir scripts api:app --reload</code> e tente de novo.
+          The API didn't respond ({erro}). Make sure it is running with{" "}
+          <code>.venv\Scripts\uvicorn --app-dir scripts api:app --reload</code> and try again.
         </p>
         {aoTentar && (
           <button className="botao" onClick={aoTentar}>
-            Tentar de novo
+            Try again
           </button>
         )}
       </div>

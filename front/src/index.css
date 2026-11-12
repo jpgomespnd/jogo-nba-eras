@@ -6,11 +6,7 @@
 
 html {
   background: var(--fundo);
-  color-scheme: dark;
-}
-
-[data-era="2010"] {
-  color-scheme: light;
+  color-scheme: var(--esquema);
 }
 
 body {
@@ -150,6 +146,36 @@ code {
 .topo-info {
   flex: 1;
   color: var(--texto-suave);
+}
+
+.seletor-visual {
+  display: flex;
+  margin-left: auto;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+  font-family: var(--fonte-texto);
+  font-size: 0.85rem;
+}
+
+.seletor-visual button {
+  min-height: 36px;
+  padding: 4px 12px;
+  background: transparent;
+  border: 0;
+  color: var(--texto-suave);
+  cursor: pointer;
+}
+
+.seletor-visual button:hover {
+  color: var(--texto);
+}
+
+.seletor-visual button[aria-checked="true"] {
+  background: var(--painel-2);
+  color: var(--texto);
+  font-weight: 600;
+  box-shadow: inset 0 -2px var(--destaque);
 }
 
 .conteudo {
@@ -574,12 +600,8 @@ button.mini:hover {
 }
 
 .mini-ao-vivo .mini-placar {
-  color: #ff6b7d;
+  color: var(--alerta);
   font-size: 0.85em;
-}
-
-[data-era="2010"] .mini-ao-vivo .mini-placar {
-  color: #b3172b;
 }
 
 .serie-corpo {
@@ -739,11 +761,7 @@ button.mini:hover {
 }
 
 .destaques span {
-  color: var(--destaque);
-}
-
-[data-era="2010"] .destaques span {
-  color: #b8860b;
+  color: var(--estrela);
 }
 
 .abrir-box {
@@ -822,15 +840,10 @@ button.mini:hover {
 .etiqueta-falta {
   margin-left: 8px;
   padding: 0 6px;
-  border: 1px solid #ff6b7d;
-  color: #ff6b7d;
+  border: 1px solid var(--alerta);
+  color: var(--alerta);
   border-radius: var(--raio);
   font-size: 0.8em;
-}
-
-[data-era="2010"] .etiqueta-falta {
-  border-color: #b3172b;
-  color: #b3172b;
 }
 
 /* Final narrado */
@@ -844,11 +857,7 @@ button.mini:hover {
 
 .relogio .placar-numero {
   font-size: calc(2rem * var(--numero-escala));
-  color: #ff6b7d;
-}
-
-[data-era="2010"] .relogio .placar-numero {
-  color: #b3172b;
+  color: var(--alerta);
 }
 
 .narracao-controles {
@@ -1161,6 +1170,12 @@ button.mini:hover {
 
 .acoes-fim {
   padding-bottom: 8px;
+}
+
+/* "1990s" não vira "1990S" nos títulos em caixa alta. */
+.era-nome.era-rotulo,
+.era-rotulo {
+  text-transform: none;
 }
 
 /* Telas estreitas */

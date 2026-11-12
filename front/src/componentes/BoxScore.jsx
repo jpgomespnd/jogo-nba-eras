@@ -1,18 +1,20 @@
 import { useEffect, useRef } from "react";
 
 const COLUNAS = ["MIN", "PTS", "REB", "AST", "ROB", "TOC", "ERR", "FAL", "ARR", "3P", "LL"];
+// As chaves vêm da API em português; na tela aparecem as siglas e os nomes em inglês.
+const SIGLAS = { ROB: "STL", TOC: "BLK", ERR: "TOV", FAL: "PF", ARR: "FG", "3P": "3PT", LL: "FT" };
 const NOMES_DAS_COLUNAS = {
-  MIN: "Minutos",
-  PTS: "Pontos",
-  REB: "Rebotes",
-  AST: "Assistências",
-  ROB: "Roubos de bola",
-  TOC: "Tocos",
-  ERR: "Desperdícios",
-  FAL: "Faltas",
-  ARR: "Arremessos de quadra",
-  "3P": "Bolas de 3",
-  LL: "Lances livres",
+  MIN: "Minutes",
+  PTS: "Points",
+  REB: "Rebounds",
+  AST: "Assists",
+  ROB: "Steals",
+  TOC: "Blocks",
+  ERR: "Turnovers",
+  FAL: "Personal fouls",
+  ARR: "Field goals",
+  "3P": "3-pointers",
+  LL: "Free throws",
 };
 
 function Tabela({ time, linhas, lado }) {
@@ -24,10 +26,10 @@ function Tabela({ time, linhas, lado }) {
         </caption>
         <thead>
           <tr>
-            <th scope="col">Jogador</th>
+            <th scope="col">Player</th>
             {COLUNAS.map((c) => (
               <th key={c} scope="col" title={NOMES_DAS_COLUNAS[c]}>
-                {c}
+                {SIGLAS[c] ?? c}
               </th>
             ))}
           </tr>
@@ -37,7 +39,7 @@ function Tabela({ time, linhas, lado }) {
             <tr key={l.Jogador}>
               <th scope="row">
                 {l.Jogador}
-                {l.eliminado && <span className="etiqueta-falta">Eliminado</span>}
+                {l.eliminado && <span className="etiqueta-falta">Fouled out</span>}
               </th>
               {COLUNAS.map((c) => (
                 <td key={c}>{l[c]}</td>
@@ -70,10 +72,10 @@ export default function BoxScore({ jogo, serie, aoFechar }) {
     >
       <div className="dialogo-cabeca">
         <h2 id="titulo-box">
-          Jogo {jogo.numero}: {a.sigla} {jogo.pts_a} x {jogo.pts_b} {b.sigla}
+          Game {jogo.numero}: {a.sigla} {jogo.pts_a}–{jogo.pts_b} {b.sigla}
         </h2>
         <button className="botao botao-discreto" onClick={aoFechar} autoFocus>
-          Fechar
+          Close
         </button>
       </div>
       <Tabela time={a} linhas={jogo.box_a} lado="a" />

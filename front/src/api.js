@@ -5,7 +5,7 @@ async function pedir(caminho, opcoes) {
   const resposta = await fetch(`${BASE}${caminho}`, opcoes);
   const corpo = await resposta.json();
   if (!resposta.ok) {
-    const detalhe = typeof corpo.detail === "string" ? corpo.detail : "Pedido inválido";
+    const detalhe = typeof corpo.detail === "string" ? corpo.detail : "Invalid request";
     throw new Error(detalhe);
   }
   return corpo;
