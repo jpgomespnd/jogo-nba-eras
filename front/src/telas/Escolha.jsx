@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api.js";
 import CartaTime from "../componentes/CartaTime.jsx";
+import { Nome } from "../componentes/Nome.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { numero, porcento, rotuloDaEra } from "../formato.js";
 
@@ -100,8 +101,8 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
   ));
 
   const opcoesDeMando = [
-    ["a", timeA ? `${timeA.sigla} ${escolha.a.temporada}` : "Team A"],
-    ["b", timeB ? `${timeB.sigla} ${escolha.b.temporada}` : "Team B"],
+    ["a", timeA ? <><Nome>{timeA.sigla}</Nome> {escolha.a.temporada}</> : "Team A"],
+    ["b", timeB ? <><Nome>{timeB.sigla}</Nome> {escolha.b.temporada}</> : "Team B"],
     ["neutro", "Neutral court"],
   ];
 

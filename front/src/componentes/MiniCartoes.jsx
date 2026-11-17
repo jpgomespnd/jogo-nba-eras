@@ -1,3 +1,5 @@
+import { Nome } from "./Nome.jsx";
+
 // Os 7 jogos possíveis. Os que ainda não foram mostrados ficam vazios: não dá para saber quantos haverá.
 export default function MiniCartoes({ serie, revelados, atual, aoVivo, aoEscolher }) {
   const { time_a: a, time_b: b } = serie;
@@ -39,7 +41,7 @@ export default function MiniCartoes({ serie, revelados, atual, aoVivo, aoEscolhe
                 {jogo.decisivo && <span className="mini-decisivo"> · elimination</span>}
               </span>
               <span className="mini-placar placar-numero">
-                {venceuA ? a.sigla : b.sigla} {Math.max(jogo.pts_a, jogo.pts_b)}-{Math.min(jogo.pts_a, jogo.pts_b)}
+                <Nome>{venceuA ? a.sigla : b.sigla}</Nome> {Math.max(jogo.pts_a, jogo.pts_b)}-{Math.min(jogo.pts_a, jogo.pts_b)}
               </span>
             </button>
           </li>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
+import { Nome } from "../componentes/Nome.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { comSinal, numero, porcento, rotuloDaEra } from "../formato.js";
 
@@ -68,7 +69,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
           <h1 className="revelacao-titulo">
             <span className="resultado-placar placar-numero">{resultado.replace("-", "–")}</span>
             <span className="resultado-linha">
-              {vencedor.nome} {vencedor.temporada} over {perdedor.nome} {perdedor.temporada}
+              <Nome>{vencedor.nome}</Nome> {vencedor.temporada} over <Nome>{perdedor.nome}</Nome> {perdedor.temporada}
             </span>
           </h1>
           <p className="revelacao-sub">
@@ -84,7 +85,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
           <section className={`painel mvp lado-${lado}`} aria-label="Series MVP">
             <p className="titulo-secao">Series MVP</p>
             <p className="mvp-nome">
-              {serie.mvp.jogador} <span className="mvp-sigla">{vencedor.sigla}</span>
+              <Nome>{serie.mvp.jogador}</Nome> <span className="mvp-sigla" translate="no">{vencedor.sigla}</span>
             </p>
             <p className="mvp-numeros">
               <span><b className="placar-numero">{numero(serie.mvp.pontos, 1)}</b> PTS</span>
@@ -110,9 +111,9 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
               <section className="painel">
                 <h2 className="titulo-secao">Average score</h2>
                 <div className="comparacao">
-                  <span className="lado-a">{a.sigla}</span>
+                  <span className="lado-a" translate="no">{a.sigla}</span>
                   <span>Across 10,000 series</span>
-                  <span className="lado-b">{b.sigla}</span>
+                  <span className="lado-b" translate="no">{b.sigla}</span>
                   <b className="placar-numero">{numero(chances.media_pts_a, 1)}</b>
                   <span />
                   <b className="placar-numero">{numero(chances.media_pts_b, 1)}</b>
@@ -134,10 +135,10 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
                         <span className="visualmente-oculto">Stat</span>
                       </th>
                       <th scope="col" className="lado-a">
-                        {a.sigla} {a.temporada}
+                        <Nome>{a.sigla}</Nome> {a.temporada}
                       </th>
                       <th scope="col" className="lado-b">
-                        {b.sigla} {b.temporada}
+                        <Nome>{b.sigla}</Nome> {b.temporada}
                       </th>
                     </tr>
                   </thead>
@@ -165,7 +166,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
             ].map(([l, time]) => (
               <table key={l}>
                 <caption className={`faixa-${l}`}>
-                  {time.sigla} {time.temporada}, per game
+                  <Nome>{time.sigla}</Nome> {time.temporada}, per game
                 </caption>
                 <thead>
                   <tr>
@@ -178,7 +179,9 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
                 <tbody>
                   {lideresDaSerie(jogos, l).map((s) => (
                     <tr key={s.jogador}>
-                      <th scope="row">{s.jogador}</th>
+                      <th scope="row">
+                        <Nome>{s.jogador}</Nome>
+                      </th>
                       <td className="placar-numero">{numero(s.PTS, 1)}</td>
                       <td className="placar-numero">{numero(s.REB, 1)}</td>
                       <td className="placar-numero">{numero(s.AST, 1)}</td>
@@ -215,8 +218,8 @@ function Zebrometro({ chances, lado, vencedor }) {
       <p className="zebrometro-veredito">{zebra ? "Upset!" : "Chalk"}</p>
       <p>
         {zebra
-          ? `Before the series, the ${vencedor.nome} were given only ${porcento(chance)} odds.`
-          : `The ${vencedor.nome} were the favorites, at ${porcento(chance)}.`}
+          ? <>Before the series, the <Nome>{vencedor.nome}</Nome> were given only {porcento(chance)} odds.</>
+          : <>The <Nome>{vencedor.nome}</Nome> were the favorites, at {porcento(chance)}.</>}
       </p>
       <div
         className="medidor"
@@ -257,7 +260,7 @@ function Distribuicao({ chances, a, b, lado, resultado }) {
         ))}
       </div>
       <p className="legenda">
-        <span className="ponto lado-a" /> {a.sigla} wins <span className="ponto lado-b" /> {b.sigla} wins{" "}
+        <span className="ponto lado-a" /> <Nome>{a.sigla}</Nome> wins <span className="ponto lado-b" /> <Nome>{b.sigla}</Nome> wins{" "}
         <span className="legenda-aconteceu">outlined: what happened</span>
       </p>
     </section>

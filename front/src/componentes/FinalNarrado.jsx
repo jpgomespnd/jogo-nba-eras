@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Nome, Texto } from "./Nome.jsx";
 
 const VELOCIDADES = [1, 2, 4];
 const QUARTO = 720;
@@ -40,7 +41,7 @@ export function EscolhaDoFinal({ jogo, serie, aoAcompanhar, aoSimular }) {
     <dialog ref={caixa} className="dialogo" aria-labelledby="titulo-final" onCancel={(e) => e.preventDefault()}>
       <h2 id="titulo-final">Game {jogo.numero} is coming down to the wire</h2>
       <p className="dialogo-placar placar-numero">
-        {serie.time_a.sigla} {antes.pts_a}–{antes.pts_b} {serie.time_b.sigla}
+        <Nome>{serie.time_a.sigla}</Nome> {antes.pts_a}–{antes.pts_b} <Nome>{serie.time_b.sigla}</Nome>
       </p>
       <p>
         {antes.tempo} left in {antes.periodo}. How do you want to see the finish?
@@ -87,7 +88,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
 
       <div className="placar">
         <div className="placar-lado lado-a">
-          <span className="placar-sigla">{serie.time_a.sigla}</span>
+          <span className="placar-sigla" translate="no">{serie.time_a.sigla}</span>
           <span className="placar-numero placar-grande">{placar.pts_a}</span>
         </div>
         <span className="relogio">
@@ -96,7 +97,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
         </span>
         <div className="placar-lado lado-b">
           <span className="placar-numero placar-grande">{placar.pts_b}</span>
-          <span className="placar-sigla">{serie.time_b.sigla}</span>
+          <span className="placar-sigla" translate="no">{serie.time_b.sigla}</span>
         </div>
       </div>
 
@@ -118,8 +119,10 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
           .map((l, i) => (
             <li key={i} className={l.time === serie.time_a.sigla ? "lance-a" : "lance-b"}>
               <span className="lance-relogio placar-numero">{l.relogio}</span>
-              <span className="lance-time">{l.time}</span>
-              <span>{l.texto}</span>
+              <span className="lance-time" translate="no">{l.time}</span>
+              <span>
+                <Texto>{l.texto}</Texto>
+              </span>
               {l.pontos > 0 && (
                 <span className="lance-placar placar-numero">
                   {l.pts_a}-{l.pts_b}

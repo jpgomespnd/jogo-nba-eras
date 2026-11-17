@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Nome } from "./Nome.jsx";
 
 const COLUNAS = ["MIN", "PTS", "REB", "AST", "ROB", "TOC", "ERR", "FAL", "ARR", "3P", "LL"];
 // As chaves vêm da API em português; na tela aparecem as siglas e os nomes em inglês.
@@ -22,7 +23,7 @@ function Tabela({ time, linhas, lado }) {
     <div className="box-tabela">
       <table>
         <caption className={`faixa-${lado}`}>
-          {time.nome} {time.temporada}
+          <Nome>{time.nome}</Nome> {time.temporada}
         </caption>
         <thead>
           <tr>
@@ -38,7 +39,7 @@ function Tabela({ time, linhas, lado }) {
           {linhas.map((l) => (
             <tr key={l.Jogador}>
               <th scope="row">
-                {l.Jogador}
+                <Nome>{l.Jogador}</Nome>
                 {l.eliminado && <span className="etiqueta-falta">Fouled out</span>}
               </th>
               {COLUNAS.map((c) => (
@@ -72,7 +73,7 @@ export default function BoxScore({ jogo, serie, aoFechar }) {
     >
       <div className="dialogo-cabeca">
         <h2 id="titulo-box">
-          Game {jogo.numero}: {a.sigla} {jogo.pts_a}–{jogo.pts_b} {b.sigla}
+          Game {jogo.numero}: <Nome>{a.sigla}</Nome> {jogo.pts_a}–{jogo.pts_b} <Nome>{b.sigla}</Nome>
         </h2>
         <button className="botao botao-discreto" onClick={aoFechar} autoFocus>
           Close

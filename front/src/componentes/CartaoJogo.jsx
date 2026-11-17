@@ -1,3 +1,5 @@
+import { Nome, Texto } from "./Nome.jsx";
+
 const ESTATISTICAS = [
   ["PTS", "points"],
   ["REB", "rebounds"],
@@ -6,7 +8,11 @@ const ESTATISTICAS = [
 
 function localDoJogo(jogo, serie) {
   if (serie.mando === "neutro") return "Neutral court";
-  return `At ${jogo.a_em_casa ? serie.time_a.sigla : serie.time_b.sigla}`;
+  return (
+    <>
+      At <Nome>{jogo.a_em_casa ? serie.time_a.sigla : serie.time_b.sigla}</Nome>
+    </>
+  );
 }
 
 export default function CartaoJogo({ jogo, serie, aoAbrirBox }) {
@@ -29,17 +35,19 @@ export default function CartaoJogo({ jogo, serie, aoAbrirBox }) {
 
       <div className="placar">
         <div className={`placar-lado lado-a ${venceuA ? "vencedor" : ""}`}>
-          <span className="placar-sigla">{a.sigla}</span>
+          <span className="placar-sigla" translate="no">{a.sigla}</span>
           <span className="placar-numero placar-grande">{jogo.pts_a}</span>
         </div>
         <span className="placar-final">{prorrogacao ? `Final/${prorrogacao}` : "Final"}</span>
         <div className={`placar-lado lado-b ${venceuA ? "" : "vencedor"}`}>
           <span className="placar-numero placar-grande">{jogo.pts_b}</span>
-          <span className="placar-sigla">{b.sigla}</span>
+          <span className="placar-sigla" translate="no">{b.sigla}</span>
         </div>
       </div>
 
-      <h2 className="manchete">{jogo.manchete}</h2>
+      <h2 className="manchete">
+        <Texto>{jogo.manchete}</Texto>
+      </h2>
 
       <table className="lideres">
         <caption className="rotulo">Game leaders</caption>
@@ -49,13 +57,13 @@ export default function CartaoJogo({ jogo, serie, aoAbrirBox }) {
             return (
               <tr key={chave}>
                 <td className="lider-a">
-                  {la.jogador} <b className="placar-numero">{la.valor}</b>
+                  <Nome>{la.jogador}</Nome> <b className="placar-numero">{la.valor}</b>
                 </td>
                 <th scope="row" title={nome}>
                   {chave}
                 </th>
                 <td className="lider-b">
-                  <b className="placar-numero">{lb.valor}</b> {lb.jogador}
+                  <b className="placar-numero">{lb.valor}</b> <Nome>{lb.jogador}</Nome>
                 </td>
               </tr>
             );
@@ -67,7 +75,7 @@ export default function CartaoJogo({ jogo, serie, aoAbrirBox }) {
         <ul className="destaques" aria-label="Standout performances">
           {jogo.destaques.map((d) => (
             <li key={d.texto}>
-              <span aria-hidden="true">★</span> {d.texto}
+              <span aria-hidden="true">★</span> <Texto>{d.texto}</Texto>
             </li>
           ))}
         </ul>

@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import BoxScore from "../componentes/BoxScore.jsx";
 import CartaoJogo from "../componentes/CartaoJogo.jsx";
 import FinalNarrado, { EscolhaDoFinal } from "../componentes/FinalNarrado.jsx";
+import { Nome, NomesDaSerie } from "../componentes/Nome.jsx";
 import MiniCartoes from "../componentes/MiniCartoes.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { rotuloDaEra } from "../formato.js";
@@ -97,9 +98,10 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
   const vitorias = { a: ultimo?.vitorias_a ?? 0, b: ultimo?.vitorias_b ?? 0 };
   const narrando = final?.modo === "narrar";
   let situacao = "Series tied 0-0";
-  if (terminou) situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} wins the series 4-${Math.min(vitorias.a, vitorias.b)}`;
+  const lider = <Nome>{vitorias.a > vitorias.b ? a.sigla : b.sigla}</Nome>;
+  if (terminou) situacao = <>{lider} wins the series 4-{Math.min(vitorias.a, vitorias.b)}</>;
   else if (vitorias.a !== vitorias.b)
-    situacao = `${vitorias.a > vitorias.b ? a.sigla : b.sigla} leads ${Math.max(vitorias.a, vitorias.b)}-${Math.min(vitorias.a, vitorias.b)}`;
+    situacao = <>{lider} leads {Math.max(vitorias.a, vitorias.b)}-{Math.min(vitorias.a, vitorias.b)}</>;
   else if (revelados) situacao = `Series tied ${vitorias.a}-${vitorias.b}`;
 
   let palco;
@@ -111,7 +113,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
     palco = (
       <div className="cartao-jogo cartao-vazio">
         <p className="manchete">
-          {a.nome} {a.temporada} vs {b.nome} {b.temporada}
+          <Nome>{a.nome}</Nome> {a.temporada} vs <Nome>{b.nome}</Nome> {b.temporada}
         </p>
         <p>
           Up to seven games, played under {rotuloDaEra(serie.era)} conditions. The series starts when you say so.
@@ -120,78 +122,80 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
     );
 
   return (
-    <div className="tela">
-      <Topo>
-        <span className="topo-info">
-          {a.sigla} {a.temporada} vs {b.sigla} {b.temporada} · {rotuloDaEra(serie.era)}
-        </span>
-        <button className="botao botao-discreto" onClick={aoTrocarTimes}>
-          Change teams
-        </button>
-      </Topo>
-
-      <main className="conteudo serie">
-        <div className="placar-serie" aria-live="polite">
-          <span className="placar-serie-time lado-a">{a.sigla}</span>
-          <Pontos lado="a" vitorias={vitorias.a} />
-          <span className="placar-numero placar-serie-numero">
-            {vitorias.a}-{vitorias.b}
+    <NomesDaSerie serie={serie}>
+      <div className="tela">
+        <Topo>
+          <span className="topo-info">
+            <Nome>{a.sigla}</Nome> {a.temporada} vs <Nome>{b.sigla}</Nome> {b.temporada} · {rotuloDaEra(serie.era)}
           </span>
-          <Pontos lado="b" vitorias={vitorias.b} />
-          <span className="placar-serie-time lado-b">{b.sigla}</span>
-          <span className="placar-serie-situacao">{situacao}</span>
-        </div>
+          <button className="botao botao-discreto" onClick={aoTrocarTimes}>
+            Change teams
+          </button>
+        </Topo>
 
-        <MiniCartoes
-          serie={serie}
-          revelados={revelados}
-          atual={narrando ? -1 : atual}
-          aoVivo={narrando ? final.indice : -1}
-          aoEscolher={(i) => {
-            setAtual(i);
-            setBox(i);
-          }}
-        />
+        <main className="conteudo serie">
+          <div className="placar-serie" aria-live="polite">
+            <span className="placar-serie-time lado-a" translate="no">{a.sigla}</span>
+            <Pontos lado="a" vitorias={vitorias.a} />
+            <span className="placar-numero placar-serie-numero">
+              {vitorias.a}-{vitorias.b}
+            </span>
+            <Pontos lado="b" vitorias={vitorias.b} />
+            <span className="placar-serie-time lado-b" translate="no">{b.sigla}</span>
+            <span className="placar-serie-situacao">{situacao}</span>
+          </div>
 
-        <div className="serie-corpo">
-          {palco}
-          <aside className="controles" aria-label="Series controls">
-            {terminou ? (
-              <button className="botao botao-principal" onClick={() => aoTerminar(serie)}>
-                Reveal the odds
+          <MiniCartoes
+            serie={serie}
+            revelados={revelados}
+            atual={narrando ? -1 : atual}
+            aoVivo={narrando ? final.indice : -1}
+            aoEscolher={(i) => {
+              setAtual(i);
+              setBox(i);
+            }}
+          />
+
+          <div className="serie-corpo">
+            {palco}
+            <aside className="controles" aria-label="Series controls">
+              {terminou ? (
+                <button className="botao botao-principal" onClick={() => aoTerminar(serie)}>
+                  Reveal the odds
+                </button>
+              ) : (
+                <>
+                  <button className="botao botao-principal" onClick={() => avancar(false)} disabled={automatico || !!final}>
+                    {revelados ? "Next game" : "Start the series"}
+                  </button>
+                  <button className="botao" onClick={() => setAutomatico((v) => !v)} disabled={!!final} aria-pressed={automatico}>
+                    {automatico ? "Stop autoplay" : "Autoplay"}
+                  </button>
+                  <button className="botao" onClick={() => mostrar(total - 1)} disabled={narrando}>
+                    Skip to the end of the series
+                  </button>
+                </>
+              )}
+              <button className="botao" onClick={aoNovaSerie}>
+                Play again
               </button>
-            ) : (
-              <>
-                <button className="botao botao-principal" onClick={() => avancar(false)} disabled={automatico || !!final}>
-                  {revelados ? "Next game" : "Start the series"}
-                </button>
-                <button className="botao" onClick={() => setAutomatico((v) => !v)} disabled={!!final} aria-pressed={automatico}>
-                  {automatico ? "Stop autoplay" : "Autoplay"}
-                </button>
-                <button className="botao" onClick={() => mostrar(total - 1)} disabled={narrando}>
-                  Skip to the end of the series
-                </button>
-              </>
-            )}
-            <button className="botao" onClick={aoNovaSerie}>
-              Play again
-            </button>
-          </aside>
-        </div>
-      </main>
+            </aside>
+          </div>
+        </main>
 
-      {box !== null && <BoxScore key={box} jogo={serie.jogos[box]} serie={serie} aoFechar={() => setBox(null)} />}
+        {box !== null && <BoxScore key={box} jogo={serie.jogos[box]} serie={serie} aoFechar={() => setBox(null)} />}
 
-      {final?.modo === "escolher" && (
-        <EscolhaDoFinal
-          jogo={serie.jogos[final.indice]}
-          serie={serie}
-          aoAcompanhar={() => setFinal({ ...final, modo: "narrar" })}
-          aoSimular={terminarFinal}
-        />
-      )}
+        {final?.modo === "escolher" && (
+          <EscolhaDoFinal
+            jogo={serie.jogos[final.indice]}
+            serie={serie}
+            aoAcompanhar={() => setFinal({ ...final, modo: "narrar" })}
+            aoSimular={terminarFinal}
+          />
+        )}
 
-      <Rodape>One possible series; playing again gives a different one.</Rodape>
-    </div>
+        <Rodape>One possible series; playing again gives a different one.</Rodape>
+      </div>
+    </NomesDaSerie>
   );
 }
