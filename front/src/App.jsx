@@ -22,10 +22,11 @@ export default function App() {
   const [visual, setVisual] = useState(visualSalvo);
 
   // A interface veste a era escolhida, já na tela de escolha, a não ser que o visual seja escuro ou claro.
+  const tema = visual === "era" ? temaDaEra(escolha.era) : visual;
   useEffect(() => {
-    document.documentElement.dataset.era = visual === "era" ? temaDaEra(escolha.era) : visual;
+    document.documentElement.dataset.era = tema;
     salvarVisual(visual);
-  }, [visual, escolha.era]);
+  }, [tema, visual]);
 
   function irPara(proxima, era = false) {
     setFocarEra(era);
@@ -76,7 +77,7 @@ export default function App() {
   }
 
   return (
-    <ContextoVisual value={{ visual, setVisual }}>
+    <ContextoVisual value={{ visual, tema, setVisual }}>
       <ContextoInicio value={() => irPara("escolha")}>{pagina}</ContextoInicio>
     </ContextoVisual>
   );

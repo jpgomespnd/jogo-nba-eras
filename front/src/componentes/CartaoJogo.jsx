@@ -35,13 +35,13 @@ export default function CartaoJogo({ jogo, serie, aoAbrirBox }) {
 
       <div className="placar">
         <div className={`placar-lado lado-a ${venceuA ? "vencedor" : ""}`}>
-          <span className="placar-sigla" translate="no">{a.sigla}</span>
+          <span className={`placar-sigla led ${venceuA ? "aceso" : ""}`} translate="no">{a.sigla}</span>
           <span className="placar-numero placar-grande">{jogo.pts_a}</span>
         </div>
         <span className="placar-final">{prorrogacao ? `Final/${prorrogacao}` : "Final"}</span>
         <div className={`placar-lado lado-b ${venceuA ? "" : "vencedor"}`}>
           <span className="placar-numero placar-grande">{jogo.pts_b}</span>
-          <span className="placar-sigla" translate="no">{b.sigla}</span>
+          <span className={`placar-sigla led ${venceuA ? "" : "aceso"}`} translate="no">{b.sigla}</span>
         </div>
       </div>
 

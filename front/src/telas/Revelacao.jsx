@@ -3,6 +3,7 @@ import { api } from "../api.js";
 import { Nome } from "../componentes/Nome.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { comSinal, numero, porcento, rotuloDaEra } from "../formato.js";
+import { useCoresDosTimes } from "../visual.js";
 
 const RESULTADOS = ["4-0", "4-1", "4-2", "4-3"];
 const ESTILOS = [
@@ -39,6 +40,7 @@ function lideresDaSerie(jogos, lado) {
 
 export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, aoTrocarTimes }) {
   const [chances, setChances] = useState(null);
+  const cores = useCoresDosTimes(serie.time_a, serie.time_b);
   const [erro, setErro] = useState(null);
   const [tentativa, setTentativa] = useState(0);
 
@@ -59,7 +61,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
   const media = (campo) => jogos.reduce((t, j) => t + j[campo], 0) / jogos.length;
 
   return (
-    <div className="tela">
+    <div className="tela" style={cores}>
       <Topo>
         <span className="topo-info">Series over · {rotuloDaEra(serie.era)}</span>
       </Topo>
@@ -76,7 +78,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
             {jogos.length} games under <span className="era-rotulo">{rotuloDaEra(serie.era)}</span> conditions.
           </p>
           <p className="cartao-resultado-assinatura">
-            <span>What If Hoops</span>
+            <span translate="no">What If Hoops</span>
             <span>One simulated series</span>
           </p>
         </header>

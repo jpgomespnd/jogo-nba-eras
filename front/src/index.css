@@ -58,6 +58,8 @@ code {
 .lance-a {
   --cor: var(--cor-a);
   --sobre: var(--sobre-a);
+  --camisa: var(--camisa-a, var(--cor-a));
+  --camisa-texto: var(--camisa-texto-a, var(--sobre-a));
 }
 
 .lado-b,
@@ -66,6 +68,8 @@ code {
 .lance-b {
   --cor: var(--cor-b);
   --sobre: var(--sobre-b);
+  --camisa: var(--camisa-b, var(--cor-b));
+  --camisa-texto: var(--camisa-texto-b, var(--sobre-b));
 }
 
 .faixa-a,
@@ -79,7 +83,6 @@ code {
 .marca,
 .manchete,
 .carta-nome,
-.era-nome,
 .revelacao-titulo,
 .zebrometro-veredito,
 .dialogo h2,
@@ -270,12 +273,6 @@ code {
 }
 
 /* Chamada da tela de escolha */
-.chamada {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .chamada-titulo {
   font-family: var(--fonte-titulo);
   font-weight: var(--titulo-peso);
@@ -285,11 +282,6 @@ code {
   font-size: clamp(2.4rem, 6vw, 4.6rem);
   line-height: 0.92;
   text-wrap: balance;
-}
-
-.chamada-sub {
-  color: var(--texto-suave);
-  max-width: 60ch;
 }
 
 .aviso {
@@ -354,7 +346,7 @@ code {
 }
 
 [data-era="2000"] .botao-principal {
-  background: linear-gradient(180deg, #b8ecff 0%, var(--destaque) 45%, #3fa9d9 100%);
+  background: linear-gradient(180deg, #ff9cc0 0%, var(--destaque) 45%, #c81f5c 100%);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 2px 8px rgb(0 0 0 / 0.4);
 }
 
@@ -407,7 +399,6 @@ code {
   padding: 24px;
   background: var(--painel);
   border: 1px solid var(--borda);
-  border-top: 6px solid var(--cor);
   border-radius: var(--raio);
   box-shadow: var(--relevo);
 }
@@ -448,8 +439,8 @@ select {
   place-items: center;
   width: 72px;
   height: 72px;
-  background: var(--cor);
-  color: var(--sobre);
+  background: var(--camisa);
+  color: var(--camisa-texto);
   border-radius: var(--raio);
   font-family: var(--fonte-titulo);
   font-style: var(--titulo-estilo);
@@ -526,57 +517,143 @@ select {
   padding: 32px 0;
 }
 
-.eras-grade {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.era {
+/* Herói da era: o nome da era escolhida em tamanho de capa, com o seletor de led embaixo. */
+.era-heroi {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 10px;
-  padding: 16px;
-  text-align: left;
-  background: var(--painel);
-  border: 2px solid var(--borda);
-  border-radius: var(--raio);
-  cursor: pointer;
+  text-align: center;
 }
 
-.era:hover {
-  border-color: var(--texto-suave);
+.era-heroi .chamada-titulo {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  line-height: 1;
 }
 
-.era[aria-checked="true"] {
-  border-color: var(--destaque);
-  box-shadow: inset 0 0 0 1px var(--destaque);
-}
-
-.era-nome {
-  font-size: 1.5rem;
-}
-
-.era-numeros {
-  display: flex;
-  flex-direction: column;
+.era-heroi-kicker {
   color: var(--texto-suave);
-  font-size: 0.9em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
-.era-numeros b {
-  color: var(--texto);
+.era-heroi-nome {
+  font-family: var(--fonte-titulo);
+  font-weight: var(--titulo-peso);
+  font-style: var(--titulo-estilo);
+  letter-spacing: var(--titulo-espaco);
+  font-size: calc(clamp(4.5rem, 15vw, 9.5rem) * var(--numero-escala));
+  line-height: 0.85;
+  text-shadow: var(--brilho-numero);
+}
+
+.era-heroi-descricao {
+  max-width: 56ch;
+  color: var(--texto-suave);
+  text-wrap: balance;
+}
+
+.era-heroi-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.era-heroi-chips li {
+  padding: 3px 10px;
+  border: 1.5px solid var(--borda);
+  border-radius: var(--raio);
+  font-size: 0.85em;
+}
+
+.era-heroi-chips b {
   font-weight: inherit;
 }
 
-[data-era="90"] .era-numeros b {
-  color: var(--destaque);
+/* Seletor das eras: sem caixa em volta; a era escolhida acende um led embaixo.
+   Na marca cada botão tem o próprio led; nos visuais de era um led só desliza até a escolhida. */
+.seletor-eras {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(var(--quantas, 4), minmax(0, 1fr));
+  width: min(100%, 560px);
+  margin-top: 10px;
 }
 
-.era-descricao {
+.seletor-era {
+  position: relative;
+  padding: 8px 4px 16px;
+  background: none;
+  border: 0;
   color: var(--texto-suave);
-  font-size: 0.85em;
-  line-height: 1.4;
+  font-family: var(--fonte-titulo);
+  font-weight: var(--titulo-peso);
+  font-style: var(--titulo-estilo);
+  letter-spacing: var(--titulo-espaco);
+  font-size: clamp(1.3rem, 4.5vw, 2rem);
+  line-height: 1;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+
+.seletor-era:hover,
+.seletor-era[aria-checked="true"] {
+  color: var(--texto);
+}
+
+.seletor-era::after {
+  content: "";
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--destaque);
+  opacity: 0;
+  transform: scaleX(0.3);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+
+.seletor-era[aria-checked="true"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+  box-shadow: 0 0 6px var(--destaque), 0 0 16px color-mix(in srgb, var(--destaque) 70%, transparent);
+}
+
+.seletor-led {
+  display: none;
+}
+
+/* Led dos times: um traço na cor do time embaixo da sigla ou do nome; aceso no time em destaque. */
+.led {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 8px;
+}
+
+.led::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--cor);
+  opacity: 0.35;
+  transition: opacity 250ms ease, box-shadow 250ms ease;
+}
+
+.led.aceso::after {
+  opacity: 1;
+  box-shadow: 0 0 6px var(--cor), 0 0 16px color-mix(in srgb, var(--cor) 60%, transparent);
 }
 
 .rodape-escolha {
@@ -633,8 +710,6 @@ select {
   font-style: var(--titulo-estilo);
   font-weight: var(--titulo-peso);
   font-size: 1.6rem;
-  padding-bottom: 2px;
-  box-shadow: inset 0 -4px var(--cor);
 }
 
 .placar-serie-numero {
@@ -811,8 +886,6 @@ button.mini:hover {
 
 .placar-sigla {
   font-size: 1.6rem;
-  padding-bottom: 2px;
-  box-shadow: inset 0 -4px var(--cor);
 }
 
 .placar-grande {
@@ -1374,7 +1447,6 @@ button.mini:hover {
 }
 
 /* "1990s" não vira "1990S" nos títulos em caixa alta. */
-.era-nome.era-rotulo,
 .era-rotulo {
   text-transform: none;
 }
@@ -1402,10 +1474,6 @@ button.mini:hover {
   .versus {
     justify-self: center;
     font-size: 1.6rem;
-  }
-
-  .eras-grade {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .mini-cartoes {
@@ -1447,10 +1515,6 @@ button.mini:hover {
     white-space: normal;
     padding: 6px;
   }
-  .eras-grade {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .carta-controles {
     grid-template-columns: minmax(0, 1fr);
   }

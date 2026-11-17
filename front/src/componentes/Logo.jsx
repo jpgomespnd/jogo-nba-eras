@@ -25,7 +25,7 @@ export function Simbolo({ className }) {
 
 export default function Logo() {
   return (
-    <span className="logo" role="img" aria-label="What If Hoops">
+    <span className="logo" role="img" aria-label="What If Hoops" translate="no">
       <Simbolo className="logo-simbolo" />
       <span className="logo-palavras" aria-hidden="true">
         <span>What if</span>

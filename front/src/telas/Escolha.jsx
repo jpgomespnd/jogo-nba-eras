@@ -4,6 +4,7 @@ import CartaTime from "../componentes/CartaTime.jsx";
 import { Nome } from "../componentes/Nome.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { numero, porcento, rotuloDaEra } from "../formato.js";
+import { useCoresDosTimes } from "../visual.js";
 
 // Os times de cada temporada são pedidos uma vez só.
 const timesPorTemporada = new Map();
@@ -50,6 +51,7 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
   const timeDe = (lado) => times[escolha[lado].temporada]?.find((t) => t.id === escolha[lado].id);
   const timeA = timeDe("a");
   const timeB = timeDe("b");
+  const cores = useCoresDosTimes(timeA && { id: timeA.id, temporada: escolha.a.temporada }, timeB && { id: timeB.id, temporada: escolha.b.temporada });
 
   function trocarTemporada(lado, temporada) {
     buscarTimes(temporada).then((lista) => {
@@ -100,6 +102,20 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
     />
   ));
 
+  const indiceDaEra = eras.findIndex((e) => e.nome === escolha.era);
+  const eraAtual = eras[indiceDaEra];
+  const escolherEra = (nome) => setEscolha((e) => ({ ...e, era: nome }));
+
+  // Setas trocam de era dentro do grupo, como em qualquer grupo de opções.
+  function andarComSetas(evento) {
+    const passo = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[evento.key];
+    if (!passo) return;
+    evento.preventDefault();
+    const proxima = (indiceDaEra + passo + eras.length) % eras.length;
+    escolherEra(eras[proxima].nome);
+    evento.currentTarget.querySelectorAll("button")[proxima].focus();
+  }
+
   const opcoesDeMando = [
     ["a", timeA ? <><Nome>{timeA.sigla}</Nome> {escolha.a.temporada}</> : "Team A"],
     ["b", timeB ? <><Nome>{timeB.sigla}</Nome> {escolha.b.temporada}</> : "Team B"],
@@ -107,15 +123,54 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
   ];
 
   return (
-    <div className="tela">
+    <div className="tela" style={cores}>
       <Topo>
         <span className="topo-info">Best-of-7 series across eras</span>
       </Topo>
       <main className="conteudo escolha">
-        <header className="chamada">
+        <section className="era-heroi" ref={secaoEras} aria-labelledby="titulo-era">
           <h1 className="chamada-titulo">The series that never happened.</h1>
-          <p className="chamada-sub">Pick any two teams since {temporadas.at(-1)}, pick the era the series is played in, and settle it.</p>
-        </header>
+          <p className="era-heroi-kicker" id="titulo-era">
+            Pick the era the series is played in
+          </p>
+          <p className="era-heroi-nome era-rotulo" aria-live="polite">
+            {rotuloDaEra(escolha.era)}
+          </p>
+          {eraAtual && (
+            <>
+              <p className="era-heroi-descricao">{eraAtual.descricao}</p>
+              <ul className="era-heroi-chips">
+                <li>
+                  <b className="placar-numero">{numero(eraAtual.ritmo, 1)}</b> possessions per game
+                </li>
+                <li>
+                  <b className="placar-numero">{porcento(eraAtual.volume_de_3)}</b> of shots are 3s
+                </li>
+              </ul>
+            </>
+          )}
+          <div
+            className="seletor-eras"
+            role="radiogroup"
+            aria-labelledby="titulo-era"
+            style={{ "--indice": Math.max(0, indiceDaEra), "--quantas": eras.length }}
+            onKeyDown={andarComSetas}
+          >
+            {eras.map((era) => (
+              <button
+                key={era.nome}
+                role="radio"
+                aria-checked={escolha.era === era.nome}
+                tabIndex={escolha.era === era.nome ? 0 : -1}
+                className="seletor-era era-rotulo"
+                onClick={() => escolherEra(era.nome)}
+              >
+                {era.rotulo ?? rotuloDaEra(era.nome)}
+              </button>
+            ))}
+            <span className="seletor-led" aria-hidden="true" />
+          </div>
+        </section>
 
         <div className="duelo">
           {cartas[0]}
@@ -125,32 +180,6 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
           </div>
           {cartas[1]}
         </div>
-
-        <section className="eras" ref={secaoEras}>
-          <h2 className="titulo-secao">Which era the series is played in</h2>
-          <div className="eras-grade" role="radiogroup" aria-label="Era">
-            {eras.map((era) => (
-              <button
-                key={era.nome}
-                role="radio"
-                aria-checked={escolha.era === era.nome}
-                className="era"
-                onClick={() => setEscolha((e) => ({ ...e, era: era.nome }))}
-              >
-                <span className="era-nome era-rotulo">{era.rotulo ?? rotuloDaEra(era.nome)}</span>
-                <span className="era-numeros">
-                  <span>
-                    <b className="placar-numero">{numero(era.ritmo, 1)}</b> possessions per game
-                  </span>
-                  <span>
-                    <b className="placar-numero">{porcento(era.volume_de_3)}</b> of shots are 3s
-                  </span>
-                </span>
-                <span className="era-descricao">{era.descricao}</span>
-              </button>
-            ))}
-          </div>
-        </section>
 
         <div className="rodape-escolha">
           <fieldset className="mando">

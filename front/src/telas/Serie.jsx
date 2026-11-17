@@ -7,6 +7,7 @@ import { Nome, NomesDaSerie } from "../componentes/Nome.jsx";
 import MiniCartoes from "../componentes/MiniCartoes.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { rotuloDaEra } from "../formato.js";
+import { useCoresDosTimes } from "../visual.js";
 
 const PAUSA_DO_AUTOMATICO = 2200;
 
@@ -73,6 +74,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
   }, [rodando, revelados, avancar]);
 
   const terminarFinal = useCallback(() => mostrar(final.indice), [final, mostrar]);
+  const cores = useCoresDosTimes(serie?.time_a, serie?.time_b);
 
   if (!serie) {
     return (
@@ -123,7 +125,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
 
   return (
     <NomesDaSerie serie={serie}>
-      <div className="tela">
+      <div className="tela" style={cores}>
         <Topo>
           <span className="topo-info">
             <Nome>{a.sigla}</Nome> {a.temporada} vs <Nome>{b.sigla}</Nome> {b.temporada} · {rotuloDaEra(serie.era)}
@@ -135,13 +137,13 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
 
         <main className="conteudo serie">
           <div className="placar-serie" aria-live="polite">
-            <span className="placar-serie-time lado-a" translate="no">{a.sigla}</span>
+            <span className={`placar-serie-time led lado-a ${vitorias.a > vitorias.b ? "aceso" : ""}`} translate="no">{a.sigla}</span>
             <Pontos lado="a" vitorias={vitorias.a} />
             <span className="placar-numero placar-serie-numero">
               {vitorias.a}-{vitorias.b}
             </span>
             <Pontos lado="b" vitorias={vitorias.b} />
-            <span className="placar-serie-time lado-b" translate="no">{b.sigla}</span>
+            <span className={`placar-serie-time led lado-b ${vitorias.b > vitorias.a ? "aceso" : ""}`} translate="no">{b.sigla}</span>
             <span className="placar-serie-situacao">{situacao}</span>
           </div>
 

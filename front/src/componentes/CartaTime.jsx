@@ -31,7 +31,9 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
               {time.sigla}
             </div>
             <div>
-              <h2 className="carta-nome" translate="no">{time.nome}</h2>
+              <h2 className="carta-nome" translate="no">
+                <span className="led aceso">{time.nome}</span>
+              </h2>
               <p className="carta-campanha">
                 <span className="placar-numero">{campanha(time)}</span> in {temporada}, {comSinal(time.saldo)} point
                 differential

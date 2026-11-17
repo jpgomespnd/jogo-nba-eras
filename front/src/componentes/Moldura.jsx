@@ -49,7 +49,7 @@ export function Rodape({ children }) {
     <footer className="rodape">
       <p>{children}</p>
       <p className="rodape-marca">
-        <span className="rodape-slogan">Any team. Any era. Best of 7.</span> What If Hoops is an unofficial project, not
+        <span className="rodape-slogan">Any team. Any era. Best of 7.</span> <span translate="no">What If Hoops</span> is an unofficial project, not
         affiliated with the NBA.
       </p>
     </footer>
