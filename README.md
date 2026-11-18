@@ -29,7 +29,6 @@ flowchart LR
     banco --> sim["Simulator<br/>simulador.py · eras.py<br/>jogo_detalhado.py · confronto.py"]
     sim --> api["FastAPI<br/>api.py"]
     api --> front["React + Vite<br/>front/"]
-    sim --> st["Streamlit prototype<br/>app.py"]
 ```
 
 The code and comments are in Portuguese; the website is in English.
@@ -47,7 +46,7 @@ The code and comments are in Portuguese; the website is in English.
 | Endpoint | Returns |
 |---|---|
 | `GET /temporadas` | The 36 seasons |
-| `GET /times?temporada=2016-17` | Teams of a season: record, differential, strength, style tags and top scorers |
+| `GET /times?temporada=2016-17` | Teams of a season: record, differential, strength, style tags, top scorers and whether it won the title |
 | `GET /eras` | Eras with description, pace, three-point volume and points per shot |
 | `POST /serie` | A series game by game: scores, box scores, plays, headlines, leaders, standout performances and the series MVP (no odds) |
 | `POST /revelar` | Each team's odds, the 4-0 to 4-3 distribution and each team's style in the era |
@@ -76,9 +75,7 @@ npm install
 npm run dev
 ```
 
-Opens at http://localhost:5173. Set `VITE_API_URL` to point it at another API. Streamlit prototype: `.venv\Scripts\streamlit run scripts\app.py`.
-
-On Windows, keep the project in a short path (e.g. `C:\projects\jogo-nba-eras`): Streamlit ships files with long names and installation fails if the full path exceeds 260 characters, unless long path support is enabled.
+Opens at http://localhost:5173. Set `VITE_API_URL` to point it at another API.
 
 ## Tests and CI
 

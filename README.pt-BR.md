@@ -29,7 +29,6 @@ flowchart LR
     banco --> sim["Simulador<br/>simulador.py · eras.py<br/>jogo_detalhado.py · confronto.py"]
     sim --> api["API FastAPI<br/>api.py"]
     api --> front["Front React + Vite<br/>front/"]
-    sim --> st["Protótipo Streamlit<br/>app.py"]
 ```
 
 ## Como funciona
@@ -45,7 +44,7 @@ flowchart LR
 | Endereço | O que devolve |
 |---|---|
 | `GET /temporadas` | As 36 temporadas |
-| `GET /times?temporada=2016-17` | Times da temporada: campanha, saldo, força, selos de estilo e cestinhas |
+| `GET /times?temporada=2016-17` | Times da temporada: campanha, saldo, força, selos de estilo, cestinhas e se foi campeão |
 | `GET /eras` | As eras com descrição, ritmo, volume de 3 e pontos por arremesso |
 | `POST /serie` | Uma série jogo a jogo: placares, box scores, lances, manchetes, líderes, destaques e o MVP da série (sem as chances) |
 | `POST /revelar` | Chances de cada time, distribuição de 4-0 a 4-3 e o estilo de cada um na era |
@@ -74,9 +73,7 @@ npm install
 npm run dev
 ```
 
-Abre em http://localhost:5173. Para apontar para outra API, defina `VITE_API_URL`. O protótipo em Streamlit: `.venv\Scripts\streamlit run scripts\app.py`.
-
-No Windows, deixe o projeto num caminho curto (ex.: `C:\projetos\jogo-nba-eras`): o Streamlit tem arquivos internos com nomes longos e a instalação falha se o caminho completo passar de 260 caracteres, a menos que o suporte a caminhos longos esteja ativado.
+Abre em http://localhost:5173. Para apontar para outra API, defina `VITE_API_URL`.
 
 ## Testes e CI
 

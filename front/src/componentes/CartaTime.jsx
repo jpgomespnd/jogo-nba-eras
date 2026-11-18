@@ -17,7 +17,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
           <select translate="no" value={time?.id ?? ""} onChange={(e) => aoTrocarTime(Number(e.target.value))} disabled={!times}>
             {(times ?? []).map((t) => (
               <option key={t.id} value={t.id}>
-                {t.campeao ? `${t.nome} · Champions` : t.nome}
+                {t.campeao ? `${t.nome} 🏆` : t.nome}
               </option>
             ))}
           </select>
