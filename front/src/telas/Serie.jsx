@@ -158,7 +158,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
                     {automatico ? "Stop autoplay" : "Autoplay"}
                   </button>
                   <button className="botao" onClick={() => mostrar(total - 1)} disabled={narrando}>
-                    Skip to the end of the series
+                    Skip to the end
                   </button>
                 </>
               )}

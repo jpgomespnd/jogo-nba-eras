@@ -4,6 +4,7 @@ Rodar da raiz do projeto: uvicorn --app-dir scripts api:app --reload
 Documentação interativa: http://localhost:8000/docs
 """
 
+import os
 from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import Literal
@@ -22,8 +23,9 @@ from eras import DESCRICOES_EN, ERAS, ROTULOS_EN, ambiente, carregar
 from series_reais import campeoes, montar_series
 
 SIMULACOES = 10000
-# Endereço do front em desenvolvimento (Vite); só ele pode chamar a API pelo navegador.
-ORIGENS_DO_FRONT = ["http://localhost:5173", "http://127.0.0.1:5173"]
+# Endereços do front que podem chamar a API pelo navegador. Padrão: o Vite nesta máquina; para abrir no celular
+# ou em produção, defina ORIGENS_DO_FRONT com os endereços separados por vírgula.
+ORIGENS_DO_FRONT = os.environ.get("ORIGENS_DO_FRONT", "http://localhost:5173,http://127.0.0.1:5173").split(",")
 # Selos de estilo: coluna, sentido (+1 = acima da média é bom) e texto. Entram os desvios de 1 espalhamento ou mais.
 SELOS = [
     ("rel_ortg", 1, "Elite offense"),

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-// Endereço da API; em produção vem da variável VITE_API_URL.
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+// Endereço da API; em produção vem da variável VITE_API_URL. Sem ela, a API é procurada na porta 8000 da mesma
+// máquina que serviu o site (localhost no computador, o IP do computador quando aberto no celular).
+const BASE = import.meta.env.VITE_API_URL ?? `${location.protocol}//${location.hostname}:8000`;
 
 async function pedir(caminho, opcoes) {
   const resposta = await fetch(`${BASE}${caminho}`, opcoes);

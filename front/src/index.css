@@ -1494,7 +1494,34 @@ button.mini:hover {
   }
 
   .controles {
-    position: static;
+    position: sticky;
+    top: auto;
+    bottom: 0;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0 -16px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: var(--fundo);
+    border-top: 1px solid var(--borda);
+  }
+
+  .controles .botao {
+    min-height: 40px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .controles .botao-principal {
+    grid-column: 1 / -1;
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  /* Série encerrada: sobram dois botões, um em cada linha inteira. */
+  .controles > .botao:nth-child(2):last-child {
+    grid-column: 1 / -1;
   }
 
   .placar-serie-situacao {
@@ -1507,11 +1534,6 @@ button.mini:hover {
   /* O jogo de eliminação já aparece no cartão do jogo; no mini-cartão não cabe. */
   .mini-decisivo {
     display: none;
-  }
-
-  .topo-info {
-    order: 3;
-    flex-basis: 100%;
   }
 
   .mini {
@@ -1555,6 +1577,75 @@ button.mini:hover {
 
   .barra-coluna {
     width: 28px;
+  }
+
+  /* Topo: logo e visual na primeira linha; o confronto e "Change teams" na segunda, menores. */
+  .topo .seletor-visual {
+    order: 1;
+  }
+
+  .topo-info {
+    order: 3;
+    flex: 1 1 55%;
+    min-width: 0;
+    font-size: 0.8rem;
+  }
+
+  .topo > .botao,
+  .topo .seletor-visual {
+    flex: none;
+  }
+
+  .topo > .botao {
+    order: 4;
+    min-height: 32px;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+  }
+
+  /* Os 7 jogos numa fileira só, rolando para o lado. */
+  .mini-cartoes {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 4px;
+  }
+
+  .mini-cartoes li {
+    flex: 0 0 84px;
+    scroll-snap-align: start;
+  }
+
+  .mini-placar,
+  .mini-vazio .mini-placar {
+    white-space: nowrap;
+    font-size: 0.8em;
+  }
+
+  /* Líderes: nome e número na mesma linha; nome comprido termina em reticências. */
+  .lideres {
+    table-layout: fixed;
+  }
+
+  .lideres th {
+    width: 44px;
+  }
+
+  .lideres td {
+    white-space: nowrap;
+    font-size: 0.85em;
+  }
+
+  .lideres td > [translate="no"] {
+    display: inline-block;
+    max-width: calc(100% - 2.2em);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+  }
+
+  .lideres b {
+    margin: 0 4px;
   }
 }
 
