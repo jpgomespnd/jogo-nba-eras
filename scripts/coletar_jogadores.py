@@ -7,10 +7,8 @@ Temporadas que já estão no banco são puladas; use --refazer para baixar de no
 import sys
 import time
 
-from nba_api.stats.endpoints import leaguegamelog
-
 from banco import conectar, criar_tabelas
-from coletar_jogos import PAUSA_SEGUNDOS, TIPOS, com_tentativas
+from coletar_jogos import PAUSA_SEGUNDOS, TIPOS, buscar
 from temporadas import TEMPORADAS
 
 TEMPO_LIMITE_SEGUNDOS = 60
@@ -21,17 +19,6 @@ SQL_JOGADOR_NO_JOGO = f"""
     INSERT OR REPLACE INTO player_games ({", ".join(COLUNAS)})
     VALUES ({", ".join(":" + c for c in COLUNAS)})
 """
-
-
-def buscar(temporada, tipo):
-    return com_tentativas(
-        lambda: leaguegamelog.LeagueGameLog(
-            season=temporada,
-            season_type_all_star=TIPOS[tipo],
-            player_or_team_abbreviation="P",
-            timeout=TEMPO_LIMITE_SEGUNDOS,
-        ).get_data_frames()[0]
-    )
 
 
 def preparar(jogadores, jogos_conhecidos):
@@ -60,7 +47,7 @@ def main():
                 jogos_conhecidos = {linha[0] for linha in conexao.execute(
                     "SELECT game_id FROM games WHERE season = ? AND season_type = ?", (temporada, tipo))}
                 print(f"Baixando jogadores {temporada} ({tipo})...")
-                linhas = preparar(buscar(temporada, tipo), jogos_conhecidos)
+                linhas = preparar(buscar(temporada, tipo, TEMPO_LIMITE_SEGUNDOS, player_or_team_abbreviation="P"), jogos_conhecidos)
                 with conexao:
                     conexao.executemany(SQL_JOGADOR_NO_JOGO, linhas)
                 print(f"  {len(linhas)} linhas salvas.")

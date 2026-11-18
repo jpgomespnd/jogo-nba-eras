@@ -165,7 +165,7 @@ export default function Escolha({ escolha, setEscolha, aoComecar, focarEra }) {
                 className="seletor-era era-rotulo"
                 onClick={() => escolherEra(era.nome)}
               >
-                {era.rotulo ?? rotuloDaEra(era.nome)}
+                {era.rotulo}
               </button>
             ))}
             <span className="seletor-led" aria-hidden="true" />

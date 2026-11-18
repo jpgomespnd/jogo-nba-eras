@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, usePedido } from "../api.js";
 import BoxScore from "../componentes/BoxScore.jsx";
 import CartaoJogo from "../componentes/CartaoJogo.jsx";
 import FinalNarrado, { EscolhaDoFinal } from "../componentes/FinalNarrado.jsx";
@@ -23,9 +23,6 @@ function Pontos({ lado, vitorias }) {
 }
 
 export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }) {
-  const [serie, setSerie] = useState(null);
-  const [erro, setErro] = useState(null);
-  const [tentativa, setTentativa] = useState(0);
   const [revelados, setRevelados] = useState(0);
   const [atual, setAtual] = useState(0);
   // Final em aberto: { indice, modo: "escolher" | "narrar" }.
@@ -35,17 +32,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
   const [box, setBox] = useState(null);
 
   // Uma série nova (outra semente) remonta a tela pelo key no App, então o estado já começa zerado.
-  const chave = JSON.stringify(pedido);
-  useEffect(() => {
-    let valido = true;
-    api
-      .serie(JSON.parse(chave))
-      .then((s) => valido && setSerie(s))
-      .catch((e) => valido && setErro(e.message));
-    return () => {
-      valido = false;
-    };
-  }, [chave, tentativa]);
+  const { dados: serie, erro, tentarDeNovo } = usePedido(api.serie, JSON.stringify(pedido));
 
   const total = serie?.jogos.length ?? 0;
   const terminou = serie && revelados === total;
@@ -83,10 +70,7 @@ export default function Serie({ pedido, aoTerminar, aoNovaSerie, aoTrocarTimes }
         <main className="conteudo">
           <Aviso
             erro={erro}
-            aoTentar={() => {
-              setErro(null);
-              setTentativa((n) => n + 1);
-            }}
+            aoTentar={tentarDeNovo}
           >
             Setting up the series in the {rotuloDaEra(pedido.era)}…
           </Aviso>

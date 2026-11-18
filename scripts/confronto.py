@@ -33,6 +33,14 @@ def buscar_time(dados, temporada, texto):
     return dados["times"].loc[(temporada, achados.index[0])]
 
 
+def siglas_do_confronto(a, b):
+    """Siglas para exibir; o mesmo time em temporadas diferentes ganha o ano ("LAL 09" x "LAL 19")."""
+    sigla_a, sigla_b = a.team_abbreviation, b.team_abbreviation
+    if sigla_a == sigla_b:
+        return f"{sigla_a} {a.name[0][2:4]}", f"{sigla_b} {b.name[0][2:4]}"
+    return sigla_a, sigla_b
+
+
 def preparar(dados, time_a, time_b, era):
     liga, espalhamento = ambiente(dados, era)
     return traduzir(time_a, dados, espalhamento), traduzir(time_b, dados, espalhamento), liga
@@ -210,12 +218,10 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
         else:
             j = jogar_detalhado(b, a, liga, eb, ea, taxas_b, taxas_a, rng, neutro, peso, siglas[::-1])
             pts_a, pts_b, box_a, box_b = j["pts_fora"], j["pts_casa"], j["box_fora"], j["box_casa"]
-        vitorias_a += pts_a > pts_b
-        vitorias_b += pts_b > pts_a
-        if pts_a > pts_b:
-            titulo = manchete(numero, siglas[0], box_a, j["prorrogacoes"])
-        else:
-            titulo = manchete(numero, siglas[1], box_b, j["prorrogacoes"])
+        a_venceu = pts_a > pts_b
+        vitorias_a += a_venceu
+        vitorias_b += not a_venceu
+        titulo = manchete(numero, siglas[0] if a_venceu else siglas[1], box_a if a_venceu else box_b, j["prorrogacoes"])
         lances = [{**l, "pts_a": l["placar_casa"] if a_em_casa else l["placar_fora"],
                    "pts_b": l["placar_fora"] if a_em_casa else l["placar_casa"]} for l in j["lances"]]
         jogos.append({"jogo": numero, "a_em_casa": None if neutro else a_em_casa, "pts_a": pts_a, "pts_b": pts_b,
@@ -223,9 +229,9 @@ def narrar_serie(dados, time_a, time_b, era, elencos, mando="a", siglas=("A", "B
                       "lances": lances, "inicio_final": inicio_do_final(lances),
                       "prorrogacoes": j["prorrogacoes"], "manchete": titulo,
                       "decisivo": decisivo, "lideres": (lideres(box_a), lideres(box_b)),
-                      "destaques": destaques_do_jogo(box_a, box_b, lances, pts_a > pts_b, siglas)})
+                      "destaques": destaques_do_jogo(box_a, box_b, lances, a_venceu, siglas)})
         if 4 in (vitorias_a, vitorias_b):
-            return jogos
+            break
     return jogos
 
 

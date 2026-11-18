@@ -79,13 +79,22 @@ def vantagem_da_casa(casa, fora, liga, neutro=False, peso_mando=1.0):
     return (mando + bonus) / (2 * CALIBRACAO_MANDO * liga["ortg"])
 
 
+def ritmo_do_jogo(casa, fora, liga):
+    return liga["pace"] + casa["rel_pace"] + fora["rel_pace"]
+
+
+def saldo_por_posse(a_casa, a_fora, vantagem):
+    """Pontos a mais por posse que a casa deve fazer; base do amortecimento."""
+    return pontos_esperados(a_casa, 1 + vantagem) - pontos_esperados(a_fora, 1 - vantagem)
+
+
 def jogar(a_casa, a_fora, vantagem, posses, pts_casa, pts_fora, rng):
     # Quem abre vantagem além do esperado relaxa (ou põe os reservas) e o placar volta para perto do esperado.
-    saldo_por_posse = pontos_esperados(a_casa, 1 + vantagem) - pontos_esperados(a_fora, 1 - vantagem)
+    esperado = saldo_por_posse(a_casa, a_fora, vantagem)
     inicio = pts_casa - pts_fora
     for posse in range(int(posses.max())):
         em_jogo = np.flatnonzero(posse < posses)
-        sorte = (pts_casa[em_jogo] - pts_fora[em_jogo] - inicio[em_jogo] - posse * saldo_por_posse) / 100
+        sorte = (pts_casa[em_jogo] - pts_fora[em_jogo] - inicio[em_jogo] - posse * esperado) / 100
         ajuste = vantagem - AMORTECIMENTO * sorte
         pts_casa[em_jogo] += pontos_por_posse(a_casa, 1 + ajuste, rng)
         pts_fora[em_jogo] += pontos_por_posse(a_fora, 1 - ajuste, rng)
@@ -98,7 +107,7 @@ def simular_jogos(casa, fora, liga, n, rng, neutro=False, peso_mando=1.0):
     """
     vantagem = vantagem_da_casa(casa, fora, liga, neutro, peso_mando)
     a_casa, a_fora = ataque(casa, fora, liga), ataque(fora, casa, liga)
-    ritmo = liga["pace"] + casa["rel_pace"] + fora["rel_pace"]
+    ritmo = ritmo_do_jogo(casa, fora, liga)
 
     pts_casa, pts_fora = np.zeros(n, dtype=np.int64), np.zeros(n, dtype=np.int64)
     posses = np.maximum(rng.normal(ritmo, DESVIO_RITMO, n).round().astype(int), 60)

@@ -3,22 +3,11 @@
 Precisam do banco: sem ele (como no CI), são puladas.
 """
 
-import pandas as pd
-
 from confronto import simular_confronto
-from eras import ERAS, METRICAS, ambiente, traduzir
-from testes_eras import saldo_contra_medio
+from eras import ERAS, METRICAS
+from testes_eras import saldos_por_era
 
 BULLS_96, WARRIORS_17 = ("1995-96", 1610612741), ("2016-17", 1610612744)
-
-
-def saldos_por_era(dados):
-    times = dados["times"]
-    colunas = {}
-    for era in ERAS:
-        liga, espalhamento = ambiente(dados, era)
-        colunas[era] = [saldo_contra_medio(traduzir(times.loc[k], dados, espalhamento), liga) for k in times.index]
-    return pd.DataFrame(colunas, index=times.index)
 
 
 def test_time_real_contra_ele_mesmo_da_50(dados_reais):

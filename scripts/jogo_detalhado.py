@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from elenco import escolher
-from simulador import AMORTECIMENTO, DESVIO_RITMO, ataque, pontos_esperados, vantagem_da_casa
+from simulador import AMORTECIMENTO, DESVIO_RITMO, ataque, ritmo_do_jogo, saldo_por_posse, vantagem_da_casa
 
 LIMITE_FALTAS = 6
 FICA_NO_BANCO = 0.5
@@ -39,8 +39,8 @@ class Lado:
         return p
 
 
-def falta(defesa, segundo, lances, contexto):
-    i = escolher(defesa.peso("pf"), contexto["rng"])
+def falta(defesa, segundo, lances, rng):
+    i = escolher(defesa.peso("pf"), rng)
     if i is None:
         return
     defesa.box["pf"][i] += 1
@@ -49,13 +49,13 @@ def falta(defesa, segundo, lances, contexto):
         lances.append(f"{defesa.nomes[i]} ({defesa.sigla}) fouls out")
 
 
-def posse(atk, defesa, fator, segundo, contexto):
+def posse(atk, defesa, fator, segundo, rng):
     """Joga uma posse; devolve os pontos e o texto do lance."""
-    rng, a = contexto["rng"], atk.ataque
+    a = atk.ataque
     atk.segundo = defesa.segundo = segundo
     lances = []
     if rng.random() < defesa.taxas["faltas_extras_por_posse"]:
-        falta(defesa, segundo, lances, contexto)
+        falta(defesa, segundo, lances, rng)
 
     if rng.random() < a.tov:
         i = escolher(atk.peso("tov"), rng)
@@ -70,7 +70,7 @@ def posse(atk, defesa, fator, segundo, contexto):
     while True:
         if rng.random() < a.lance_livre:
             i = escolher(atk.peso("fta"), rng)
-            falta(defesa, segundo, lances, contexto)
+            falta(defesa, segundo, lances, rng)
             chance = min(a.acerto_ll * atk.elenco["rel_ll"][i], 0.98)
             acertos = int(rng.random() < chance) + int(rng.random() < chance)
             atk.box["fta"][i] += 2
@@ -154,10 +154,8 @@ def jogar_detalhado(casa, fora, liga, elenco_casa, elenco_fora, taxas_casa, taxa
     vantagem = vantagem_da_casa(casa, fora, liga, neutro, peso_mando)
     lado_casa = Lado(siglas[0], casa, fora, liga, elenco_casa, taxas_casa)
     lado_fora = Lado(siglas[1], fora, casa, liga, elenco_fora, taxas_fora)
-    saldo_por_posse = (pontos_esperados(lado_casa.ataque, 1 + vantagem)
-                       - pontos_esperados(lado_fora.ataque, 1 - vantagem))
-    ritmo = liga["pace"] + casa["rel_pace"] + fora["rel_pace"]
-    contexto = {"rng": rng}
+    esperado = saldo_por_posse(lado_casa.ataque, lado_fora.ataque, vantagem)
+    ritmo = ritmo_do_jogo(casa, fora, liga)
 
     placar = {"casa": 0, "fora": 0}
     lances = []
@@ -168,10 +166,10 @@ def jogar_detalhado(casa, fora, liga, elenco_casa, elenco_fora, taxas_casa, taxa
         for k in range(posses):
             for quem, atk, defesa in (("casa", lado_casa, lado_fora), ("fora", lado_fora, lado_casa)):
                 segundo = inicio + (2 * k + (quem == "fora") + 1) * duracao
-                sorte = (placar["casa"] - placar["fora"] - diferenca_inicial - k * saldo_por_posse) / 100
+                sorte = (placar["casa"] - placar["fora"] - diferenca_inicial - k * esperado) / 100
                 ajuste = vantagem - AMORTECIMENTO * sorte
                 fator = 1 + ajuste if quem == "casa" else 1 - ajuste
-                pontos, textos = posse(atk, defesa, fator, segundo, contexto)
+                pontos, textos = posse(atk, defesa, fator, segundo, rng)
                 placar[quem] += pontos
                 segundo = min(segundo, inicio + segundos - 1)
                 periodo, tempo = relogio(segundo)

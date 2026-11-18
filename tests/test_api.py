@@ -23,6 +23,12 @@ def test_times_traz_campanha_selos_e_destaques(cliente):
     assert {d["jogador"] for d in gsw["destaques"]} & {"Stephen Curry", "Kevin Durant"}
 
 
+def test_times_marca_so_o_campeao_da_temporada(cliente):
+    for temporada, campeao in (("1997-98", "CHI"), ("2015-16", "CLE"), ("2016-17", "GSW")):
+        times = cliente.get("/times", params={"temporada": temporada}).json()
+        assert [t["sigla"] for t in times if t["campeao"]] == [campeao]
+
+
 def test_temporada_inexistente_da_404(cliente):
     assert cliente.get("/times", params={"temporada": "1980-81"}).status_code == 404
 

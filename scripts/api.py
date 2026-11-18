@@ -15,9 +15,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from banco import conectar
-from confronto import carregar_elenco, estilo_na_era, mvp_da_serie, narrar_serie, preparar, simular_confronto
+from confronto import (carregar_elenco, estilo_na_era, mvp_da_serie, narrar_serie, preparar, siglas_do_confronto,
+                       simular_confronto)
 from elenco import CONSULTA_JOGADORES, rotacao
 from eras import DESCRICOES_EN, ERAS, ROTULOS_EN, ambiente, carregar
+from series_reais import campeoes, montar_series
 
 SIMULACOES = 10000
 # Endereço do front em desenvolvimento (Vite); só ele pode chamar a API pelo navegador.
@@ -47,6 +49,7 @@ async def ciclo_de_vida(_app):
     conexao = conectar()
     try:
         DADOS.update(carregar(conexao))
+        DADOS["campeoes"] = campeoes(montar_series(conexao))
     finally:
         conexao.close()
     yield
@@ -95,23 +98,17 @@ def validar_era(era):
         raise HTTPException(422, f"Era '{era}' does not exist. Use one of {list(ERAS)} or a season.")
 
 
-def siglas(a, b):
-    sigla_a, sigla_b = a.team_abbreviation, b.team_abbreviation
-    if sigla_a == sigla_b:
-        return f"{sigla_a} {a.name[0][2:4]}", f"{sigla_b} {b.name[0][2:4]}"
-    return sigla_a, sigla_b
-
-
 def resumo_do_time(time, sigla):
     return {"id": time.name[1], "temporada": time.name[0], "sigla": sigla, "nome": time.team_name,
-            "vitorias": time.vitorias, "derrotas": time.jogos - time.vitorias}
+            "vitorias": time.vitorias, "derrotas": time.jogos - time.vitorias,
+            "campeao": time.name in DADOS["campeoes"]}
 
 
 def preparar_confronto(pedido):
     validar_era(pedido.era)
     a = buscar_time(pedido.temporada_a, pedido.time_a)
     b = buscar_time(pedido.temporada_b, pedido.time_b)
-    return a, b, siglas(a, b)
+    return a, b, siglas_do_confronto(a, b)
 
 
 @lru_cache(maxsize=64)
@@ -160,6 +157,7 @@ def times(temporada: str = Query(examples=["2016-17"])):
             "id": team_id, "sigla": time.team_abbreviation, "nome": time.team_name,
             "vitorias": time.vitorias, "derrotas": time.jogos - time.vitorias,
             "saldo": round(float(time.net), 1), "forca": round(float(time.forca), 1),
+            "campeao": (temporada, team_id) in DADOS["campeoes"],
             "selos": selos(time, da_temporada),
             "destaques": [{"jogador": n, "pontos_por_jogo": round(float(p), 1)} for n, p in zip(rot.player_name, rot.ppg)],
         })

@@ -61,7 +61,8 @@ export function EscolhaDoFinal({ jogo, serie, aoAcompanhar, aoSimular }) {
 export default function FinalNarrado({ jogo, serie, aoTerminar }) {
   const lances = jogo.lances.slice(jogo.inicio_do_final);
   const ultimo = lances.at(-1).segundo;
-  const [segundo, setSegundo] = useState(() => placarAntesDoFinal(jogo).segundo);
+  const [antes] = useState(() => placarAntesDoFinal(jogo));
+  const [segundo, setSegundo] = useState(antes.segundo);
   const [velocidade, setVelocidade] = useState(1);
 
   // Um segundo de jogo a cada 1000/velocidade ms; trocar a velocidade não perde o ponto da narração.
@@ -75,7 +76,7 @@ export default function FinalNarrado({ jogo, serie, aoTerminar }) {
   }, [segundo, velocidade, ultimo, aoTerminar]);
 
   const vistos = lances.filter((l) => l.segundo <= segundo);
-  const placar = vistos.at(-1) ?? placarAntesDoFinal(jogo);
+  const placar = vistos.at(-1) ?? antes;
   const { periodo, tempo } = relogio(Math.min(segundo, ultimo));
   const acabou = segundo > ultimo;
 

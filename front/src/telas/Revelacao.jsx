@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, usePedido } from "../api.js";
 import { Nome } from "../componentes/Nome.jsx";
 import { Aviso, Rodape, Topo } from "../componentes/Moldura.jsx";
 import { comSinal, numero, porcento, rotuloDaEra } from "../formato.js";
@@ -39,18 +38,8 @@ function lideresDaSerie(jogos, lado) {
 }
 
 export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, aoTrocarTimes }) {
-  const [chances, setChances] = useState(null);
   const cores = useCoresDosTimes(serie.time_a, serie.time_b);
-  const [erro, setErro] = useState(null);
-  const [tentativa, setTentativa] = useState(0);
-
-  const chave = JSON.stringify(confronto);
-  useEffect(() => {
-    api
-      .revelar(JSON.parse(chave))
-      .then(setChances)
-      .catch((e) => setErro(e.message));
-  }, [chave, tentativa]);
+  const { dados: chances, erro, tentarDeNovo } = usePedido(api.revelar, JSON.stringify(confronto));
 
   const { time_a: a, time_b: b, jogos } = serie;
   const ultimo = jogos.at(-1);
@@ -99,10 +88,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
         )}
 
         {!chances ? (
-          <Aviso erro={erro} aoTentar={() => {
-            setErro(null);
-            setTentativa((n) => n + 1);
-          }}>
+          <Aviso erro={erro} aoTentar={tentarDeNovo}>
             Simulating 10,000 series to find out who was favored…
           </Aviso>
         ) : (
@@ -114,7 +100,7 @@ export default function Revelacao({ confronto, serie, aoNovaSerie, aoOutraEra, a
                 <h2 className="titulo-secao">Average score</h2>
                 <div className="comparacao">
                   <span className="lado-a" translate="no">{a.sigla}</span>
-                  <span>Across 10,000 series</span>
+                  <span>Across {numero(chances.simulacoes)} series</span>
                   <span className="lado-b" translate="no">{b.sigla}</span>
                   <b className="placar-numero">{numero(chances.media_pts_a, 1)}</b>
                   <span />

@@ -46,12 +46,14 @@ def com_tentativas(chamada):
             time.sleep(espera)
 
 
-def buscar(temporada, tipo):
+def buscar(temporada, tipo, timeout=TEMPO_LIMITE_SEGUNDOS, **extras):
+    """Game log da liga numa temporada; extras vão direto para a nba_api (ex.: jogadores em vez de times)."""
     return com_tentativas(
         lambda: leaguegamelog.LeagueGameLog(
             season=temporada,
             season_type_all_star=TIPOS[tipo],
-            timeout=TEMPO_LIMITE_SEGUNDOS,
+            timeout=timeout,
+            **extras,
         ).get_data_frames()[0]
     )
 

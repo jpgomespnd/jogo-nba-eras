@@ -17,7 +17,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
           <select translate="no" value={time?.id ?? ""} onChange={(e) => aoTrocarTime(Number(e.target.value))} disabled={!times}>
             {(times ?? []).map((t) => (
               <option key={t.id} value={t.id}>
-                {t.nome}
+                {t.campeao ? `${t.nome} · Champions` : t.nome}
               </option>
             ))}
           </select>
@@ -38,6 +38,7 @@ export default function CartaTime({ lado, rotulo, temporadas, temporada, times, 
                 <span className="placar-numero">{campanha(time)}</span> in {temporada}, {comSinal(time.saldo)} point
                 differential
               </p>
+              {time.campeao && <p className="selo-campeao">{temporada} Champions</p>}
             </div>
           </div>
           <ul className="selos" aria-label="Playing style">

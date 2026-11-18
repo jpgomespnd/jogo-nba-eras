@@ -1,12 +1,19 @@
 import numpy as np
 import pandas as pd
 
+from temporadas import nome_temporada
+
 ULTIMA_FINAL_2_3_2 = "2012-13"
 
 
 def temporada_anterior(temporada):
-    ano = int(temporada[:4]) - 1
-    return f"{ano}-{str(ano + 1)[-2:]}"
+    return nome_temporada(int(temporada[:4]) - 1)
+
+
+def campeoes(series):
+    """(temporada, team_id) de quem venceu a final de cada temporada."""
+    finais = series[series.final]
+    return set(zip(finais.season, finais.vencedor.astype(int)))
 
 
 def montar_series(conexao):
@@ -37,6 +44,7 @@ def montar_series(conexao):
         })
     series = pd.DataFrame(series)
     final = series.groupby("season").inicio.transform("max") == series.inicio
+    series["final"] = final
 
     # Desgaste: jogos de playoff que cada time já tinha disputado antes da série.
     datas = jogos.groupby(["season", "team_id"]).game_date.agg(list)

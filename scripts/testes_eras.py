@@ -16,7 +16,7 @@ import pandas as pd
 from banco import conectar
 from confronto import simular_confronto
 from eras import ERAS, METRICAS, ambiente, carregar, traduzir
-from simulador import CALIBRACAO_MANDO, ataque, pontos_esperados
+from simulador import ataque, pontos_esperados, vantagem_da_casa
 
 TOLERANCIA = 0.02
 
@@ -24,9 +24,19 @@ TOLERANCIA = 0.02
 def saldo_contra_medio(time, liga):
     """Saldo esperado a cada 100 posses contra um time médio da era, em quadra neutra."""
     medio = pd.Series(0.0, index=time.index)
-    vantagem = time.bonus / (2 * CALIBRACAO_MANDO * liga["ortg"])
+    vantagem = vantagem_da_casa(time, medio, liga, neutro=True)
     return 100 * (pontos_esperados(ataque(time, medio, liga), 1 + vantagem)
                   - pontos_esperados(ataque(medio, time, liga), 1 - vantagem))
+
+
+def saldos_por_era(dados):
+    """Saldo de cada time contra um time médio, em cada era (uma coluna por era)."""
+    times = dados["times"]
+    colunas = {}
+    for era in ERAS:
+        liga, espalhamento = ambiente(dados, era)
+        colunas[era] = [saldo_contra_medio(traduzir(times.loc[k], dados, espalhamento), liga) for k in times.index]
+    return pd.DataFrame(colunas, index=times.index)
 
 
 def checar(nome, ok, detalhe):
@@ -63,11 +73,7 @@ def main():
     diferenca = max(abs(traduzir(gsw, dados, propria)[c] - gsw[c]) for c in propria.index)
     checar("3. tradução para a própria temporada", diferenca < 1e-12, f"maior mudança: {diferenca:.1e}")
 
-    saldos = {}
-    for era in ERAS:
-        liga, espalhamento = ambiente(dados, era)
-        saldos[era] = [saldo_contra_medio(traduzir(times.loc[k], dados, espalhamento), liga) for k in times.index]
-    saldos = pd.DataFrame(saldos, index=times.index)
+    saldos = saldos_por_era(dados)
     menor_correlacao = saldos.corr(method="spearman").min().min()
     checar("4. ranking estável entre eras", menor_correlacao > 0.95, f"menor correlação de ranking: {menor_correlacao:.3f}")
 

@@ -118,8 +118,7 @@ code {
 .rodape,
 .cartao-resultado-rotulo,
 .cartao-resultado-assinatura,
-.versus small,
-.titulo-secao-mono {
+.versus small {
   font-family: var(--fonte-dado, var(--fonte-texto));
 }
 
@@ -484,6 +483,20 @@ select {
 
 [data-era="2020"] .selos li {
   border-radius: 999px;
+}
+
+/* Campeão da temporada: o único selo cheio, na cor de destaque do visual. */
+.selo-campeao {
+  display: inline-block;
+  margin: 6px 0 0;
+  padding: 2px 10px;
+  border-radius: var(--raio);
+  background: var(--destaque);
+  color: var(--sobre-destaque);
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .selos .selo-vazio {

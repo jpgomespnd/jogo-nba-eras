@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from banco import conectar
+from quatro_fatores import posses
 from series_reais import montar_series, temporada_anterior
 
 # 10 pontos percentuais de aproveitamento ≈ 3,3 pontos de saldo a cada 100 posses.
@@ -27,9 +28,7 @@ def saldo_contra_bons(conexao, times):
     )
     saldo_adversario = times.net.reindex(pd.MultiIndex.from_arrays([jogos.season, jogos.opp_team_id])).values
     jogos = jogos[saldo_adversario > SALDO_TIME_BOM]
-    posses = ((jogos.fga - jogos.oreb + jogos.tov + 0.44 * jogos.fta)
-              + (jogos.opp_fga - jogos.opp_oreb + jogos.opp_tov + 0.44 * jogos.opp_fta)) / 2
-    somas = jogos.assign(margem=jogos.pts - jogos.opp_pts, posses=posses).groupby(["season", "team_id"])[["margem", "posses"]].sum()
+    somas = jogos.assign(margem=jogos.pts - jogos.opp_pts, posses=posses(jogos)).groupby(["season", "team_id"])[["margem", "posses"]].sum()
     return 100 * somas.margem / somas.posses
 
 
