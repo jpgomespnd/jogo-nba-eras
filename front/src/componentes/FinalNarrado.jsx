@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Nome, Texto } from "./Nome.jsx";
 
-const VELOCIDADES = [1, 2, 4];
+const VELOCIDADES = [1, 2, 4, 8];
 const QUARTO = 720;
 const PRORROGACAO = 300;
 
